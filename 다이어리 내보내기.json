@@ -1,0 +1,149 @@
+{
+  "plan": {
+    "id": "mtivgkph49fbq7",
+    "title": "SKT ALEPH 과제 ",
+    "start": "2026-08-11",
+    "end": "2026-11-12",
+    "priority": "MEDIUM",
+    "hours": 420,
+    "criteria": "주간 과제 제출 완료",
+    "carriedActionItem": null
+  },
+  "planHistories": [
+    {
+      "id": "mtivgc6cgslcde",
+      "title": "SKT ALEPH 과제 ",
+      "start": "2026-08-11",
+      "end": "2026-11-12",
+      "priority": "MEDIUM",
+      "hours": 420,
+      "criteria": "주간 과제 제출 완료",
+      "carriedActionItem": null,
+      "modified_at": "2026-09-01T16:18:44.550Z"
+    },
+    {
+      "id": "mtivgg5i555ebf",
+      "title": "SKT ALEPH 과제 ",
+      "start": "2026-08-11",
+      "end": "2026-11-12",
+      "priority": "HIGH",
+      "hours": 420,
+      "criteria": "주간 과제 제출 완료",
+      "carriedActionItem": null,
+      "modified_at": "2026-09-01T16:18:47.835Z"
+    },
+    {
+      "id": "mtivgiorwsgm0b",
+      "title": "SKT ALEPH 과제 ",
+      "start": "2026-08-11",
+      "end": "2026-11-12",
+      "priority": "LOW",
+      "hours": 420,
+      "criteria": "주간 과제 제출 완료",
+      "carriedActionItem": null,
+      "modified_at": "2026-09-01T16:18:50.453Z"
+    }
+  ],
+  "todos": [
+    {
+      "id": "t1",
+      "title": "과제1 나만의 포트폴리오",
+      "dueDate": "2026-08-16",
+      "priority": "HIGH",
+      "tags": "자기소개서, 기술스펙",
+      "estimatedHours": 5,
+      "status": "DONE"
+    },
+    {
+      "id": "t2",
+      "title": "과제 2 미니게임",
+      "dueDate": "2026-08-22",
+      "priority": "HIGH",
+      "tags": "게임, JAVA, 바이브코딩",
+      "estimatedHours": 5,
+      "status": "DONE"
+    },
+    {
+      "id": "t3",
+      "title": "과제3 짤카드 스튜디오",
+      "dueDate": "2026-08-25",
+      "priority": "HIGH",
+      "tags": "사진, 영상, SNS, 편집",
+      "estimatedHours": 5,
+      "status": "DONE"
+    },
+    {
+      "id": "t4",
+      "title": "과제4 정보판",
+      "dueDate": "2026-08-28",
+      "priority": "MEDIUM",
+      "tags": "환율, 실시간",
+      "estimatedHours": 5,
+      "status": "DONE"
+    },
+    {
+      "id": "t5",
+      "title": "과제5 끊임없는 프로젝트",
+      "dueDate": "2026-08-31",
+      "priority": "HIGH",
+      "tags": "자율, 바이브코딩, 창의성",
+      "estimatedHours": 5,
+      "status": "DONE"
+    },
+    {
+      "id": "t6",
+      "title": "과제 6 다이어리",
+      "dueDate": "2026-09-04",
+      "priority": "MEDIUM",
+      "tags": "백엔드, 계획, 실행",
+      "estimatedHours": 4,
+      "status": "DONE"
+    }
+  ],
+  "executionRecords": [
+    {
+      "id": "mtisyfxpa4i7e8",
+      "todoId": "t1",
+      "actualHours": 8,
+      "obstacleReason": "레이아웃 반응형 대응 문제 해결",
+      "completedAt": "2026-09-01T15:08:45.229Z"
+    },
+    {
+      "id": "mtisyfxqtswaii",
+      "todoId": "t2",
+      "actualHours": 7,
+      "obstacleReason": "알고리즘 설계 난이도 상승",
+      "completedAt": "2026-09-01T15:08:45.230Z"
+    },
+    {
+      "id": "mtisyfxqzl3kk8",
+      "todoId": "t3",
+      "actualHours": 7,
+      "obstacleReason": "이미지 리사이징 라이브러리 연동 이슈",
+      "completedAt": "2026-09-01T15:08:45.230Z"
+    },
+    {
+      "id": "mtisyfxq03xtnm",
+      "todoId": "t4",
+      "actualHours": 6,
+      "obstacleReason": "API 응답 데이터 파싱 처리 지연",
+      "completedAt": "2026-09-01T15:08:45.230Z"
+    },
+    {
+      "id": "mtisyfxqat2890",
+      "todoId": "t5",
+      "actualHours": 6,
+      "obstacleReason": "기능 확장 중 버그 트래킹",
+      "completedAt": "2026-09-01T15:08:45.230Z"
+    },
+    {
+      "id": "mtisyfxqs13a7b",
+      "todoId": "t6",
+      "actualHours": 4,
+      "obstacleReason": "특이사항 없음",
+      "completedAt": "2026-09-01T15:08:45.230Z"
+    }
+  ],
+  "pendingActionItem": "",
+  "actionItemLog": []
+}
