@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>플랜두씨 다이어리 — Plan-Do-See</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EFF1E6; --paper-card:#FBFAF3; --paper-card2:#F5F6EC; --ink:#2B2A28;
+    --ink-soft:#63604F; --line:rgba(43,42,40,0.14); --plan:#6B7FA3; --actual:#C1512E;
+    --good:#4C7A5E; --amber:#E0A23D; --danger:#B23A3A; --radius:12px;
+  }
+  *{box-sizing:border-box;} 
+  body{margin:0; padding:20px; background:var(--paper); color:var(--ink); font-family:'Noto Sans KR', sans-serif;}
+  .wrap{max-width:1050px; margin:0 auto;}
+  .page-title{font-family:'Gowun Batang', serif; font-size:28px; font-weight:700; color:var(--ink); margin-top:10px; margin-bottom:20px; padding-bottom:12px; border-bottom:2px solid var(--line);}
+  .notice-banner{background:var(--amber); color:#fff; padding:12px 16px; border-radius:var(--radius); font-weight:600; margin-bottom:20px;}
+  .card{background:var(--paper-card); border:1px solid var(--line); border-radius:var(--radius); padding:20px; margin-bottom:24px; box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+  h1, h2, h3{font-family:'Gowun Batang', serif; margin-top:0;}
+  .hint{font-size:12px; color:var(--ink-soft); margin:4px 0 10px;}
+  .form-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:12px;}
+  label{display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:4px;}
+  input, select, textarea{width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-family:inherit; background:#fff;}
+  .btn{padding:8px 16px; border-radius:6px; font-weight:600; border:none; cursor:pointer; background:var(--plan); color:#fff;}
+  .btn-actual{background:var(--actual);}
+  .btn-danger{background:var(--danger);}
+  .btn-ghost{background:transparent; color:var(--ink-soft); border:1px solid var(--line);}
+  .btn-sm{padding:5px 10px; font-size:12px; cursor:pointer;}
+  table{width:100%; border-collapse:collapse; margin-top:10px; font-size:13px;}
+  th, td{border-bottom:1px solid var(--line); padding:10px 8px; text-align:left; vertical-align:middle;}
+  th{background:var(--paper-card2); font-size:12px; color:var(--ink-soft);}
+  .badge{padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold; color:#fff;}
+  .badge-HIGH{background:var(--danger);} .badge-MEDIUM{background:var(--amber);} .badge-LOW{background:var(--good);}
+  .stat-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:12px; text-align:center;}
+  .stat-box{background:var(--paper-card2); padding:16px; border-radius:8px; border:1px solid var(--line); cursor:pointer; transition:transform 0.1s;}
+  .stat-box:hover{transform:translateY(-2px);}
+  .stat-box.active{outline:2px solid var(--plan);}
+  .stat-box .num{font-size:24px; font-weight:bold; font-family:'IBM Plex Mono', monospace; color:var(--actual);}
+  .filter-row{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin:12px 0;}
+  .filter-row > div{min-width:140px;}
+  
+  /* Modal Overlay */
+  .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:9999;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--paper-card); border-radius:var(--radius); padding:24px; width:min(480px, 92vw); box-shadow:0 8px 30px rgba(0,0,0,0.3);}
+  .modal h3{margin-bottom:14px; border-bottom:1px solid var(--line); padding-bottom:8px;}
+  .modal .row{margin-bottom:12px;}
+  .plan-history-item{border-left:3px solid var(--line); padding:6px 10px; margin-bottom:6px; font-size:13px; color:var(--ink-soft);}
+  .carried{background:#EAF2ED; border:1px solid var(--good); border-radius:8px; padding:10px 12px; font-size:13px; margin-bottom:12px;}
+  .schema-block{font-family:'IBM Plex Mono', monospace; font-size:11px; background:var(--paper-card2); border:1px solid var(--line); border-radius:8px; padding:12px; max-height:220px; overflow:auto; white-space:pre-wrap;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1 class="page-title">플랜두씨 다이어리 — Plan-Do-See</h1>
+
+  <div class="notice-banner">
+    📢 로그인 없이 누구나 볼 수 있습니다. 남이 봐도 괜찮은 내용만 넣으세요. 데이터는 이 브라우저(localStorage)에만 저장됩니다.
+  </div>
+
+  <!-- 1. Plan -->
+  <h2>1. 계획 세우기 (Plan)</h2>
+  <div class="card">
+    <div id="carriedArea"></div>
+    <form id="planForm">
+      <div class="form-grid">
+        <div><label>계획명</label><input type="text" id="p_title" required placeholder="예: JAVA 풀스택 과정 완수"></div>
+        <div><label>시작일</label><input type="date" id="p_start" required></div>
+        <div><label>종료일</label><input type="date" id="p_end" required></div>
+        <div><label>우선순위</label><select id="p_priority"><option>HIGH</option><option selected>MEDIUM</option><option>LOW</option></select></div>
+        <div><label>예상 시간(h)</label><input type="number" id="p_hours" step="0.5" required placeholder="80"></div>
+      </div>
+      <div><label>성공 기준</label><textarea id="p_criteria" rows="2" required placeholder="모든 일일 과제 수행 및 프로젝트 완료"></textarea></div>
+      <button type="submit" class="btn" style="margin-top:10px;">계획 저장/수정</button>
+    </form>
+    <div id="planHistoryArea" style="margin-top:15px;"></div>
+  </div>
+
+  <!-- 2. Do -->
+  <h2>2. 할 일 다루기 & 실제 한 일 (Do)</h2>
+  <div class="card" id="todoSection">
+    <h3 id="todoFormTitle">할 일 추가</h3>
+    <form id="todoForm">
+      <div class="form-grid">
+        <div><label>할 일 내용</label><input type="text" id="t_title" required placeholder="과제 6 체크리스트 구현"></div>
+        <div><label>마감일</label><input type="date" id="t_due" required></div>
+        <div><label>우선순위</label><select id="t_priority"><option>HIGH</option><option selected>MEDIUM</option><option>LOW</option></select></div>
+        <div><label>태그</label><input type="text" id="t_tags" placeholder="백엔드, 과제"></div>
+        <div><label>예상 시간(h)</label><input type="number" id="t_hours" step="0.5" required placeholder="2"></div>
+      </div>
+      <button type="submit" class="btn" id="todoSubmitBtn">할 일 등록</button>
+      <button type="button" class="btn btn-ghost" id="todoCancelEditBtn" style="display:none;">수정 취소</button>
+    </form>
+
+    <hr style="margin:20px 0; border:0; border-top:1px solid var(--line);" />
+
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+      <h3 style="margin:0;">할 일 목록</h3>
+      <input type="text" id="todoSearch" placeholder="제목·태그 검색..." style="width:200px;">
+    </div>
+    
+    <div class="filter-row">
+      <div>
+        <label>상태 필터</label>
+        <select id="f_status">
+          <option value="ALL">전체</option>
+          <option value="TODO">진행중</option>
+          <option value="DONE">완료</option>
+          <option value="DELAYED">지연</option>
+          <option value="OBSTACLE">막힘 기록 있음</option>
+        </select>
+      </div>
+      <div>
+        <label>우선순위 필터</label>
+        <select id="f_priority">
+          <option value="ALL">전체</option>
+          <option>HIGH</option><option>MEDIUM</option><option>LOW</option>
+        </select>
+      </div>
+      <div>
+        <label>정렬 기준 (선택)</label>
+        <select id="f_sort">
+          <option value="DUE_DATE">마감일 오름차순 (기본)</option>
+          <option value="PRIORITY">우선순위 높은 순 (HIGH→LOW)</option>
+          <option value="ESTIMATED_HOURS">예상시간 많은 순</option>
+          <option value="TITLE">제목 순 (가나다)</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="hint" id="sortCriteriaDisplay">📍 현재 적용 중인 정렬 기준: 마감일 오름차순 → 동일 시 우선순위 높은 순</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>상태</th><th>할 일</th><th>마감일</th><th>우선순위</th><th>태그</th><th>예상시간</th><th>실제시간</th><th>기록</th><th>작업</th>
+        </tr>
+      </thead>
+      <tbody id="todoTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- 3. See -->
+  <h2>3. 돌아보기 (See)</h2>
+  <div class="card">
+    <div class="filter-row">
+      <div><label>기간 시작(마감일 기준)</label><input type="date" id="rv_start"></div>
+      <div><label>기간 종료(마감일 기준)</label><input type="date" id="rv_end"></div>
+      <div><button class="btn btn-ghost btn-sm" onclick="clearReviewPeriod()" type="button">기간 초기화</button></div>
+    </div>
+    <div class="hint" id="periodLabel">집계 기간: 전체</div>
+    
+    <div class="stat-grid">
+      <div class="stat-box" data-type="ALL" onclick="filterTodoList('ALL')">
+        <div class="num" id="statPlan">0</div>
+        <div>계획 수 (전체)</div>
+      </div>
+      <div class="stat-box" data-type="DONE" onclick="filterTodoList('DONE')">
+        <div class="num" id="statDone">0</div>
+        <div>완료 수</div>
+      </div>
+      <div class="stat-box" data-type="DELAYED" onclick="filterTodoList('DELAYED')">
+        <div class="num" id="statDelayed">0</div>
+        <div>지연 수 (미완료 & 오늘 이전)</div>
+      </div>
+      <div class="stat-box" data-type="OBSTACLE" onclick="filterTodoList('OBSTACLE')">
+        <div class="num" id="statObstacle">0</div>
+        <div>막힘 수</div>
+      </div>
+      <div class="stat-box">
+        <div class="num" id="statDiff">0h</div>
+        <div>시간 격차(실제-예상)</div>
+      </div>
+    </div>
+    <div class="hint">💡 숫자를 클릭하면 해당 항목만 걸러진 할 일 목록으로 이동합니다.</div>
+
+    <div style="margin-top:20px;">
+      <label><b>다음 계획으로 넘길 고칠 점 (Action Item)</b></label>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="actionItem" placeholder="예: 예상 시간을 1.5배 보수적으로 설정하기">
+        <button class="btn" type="button" onclick="carryActionItem()">다음 계획으로 넘기기</button>
+      </div>
+      <div class="hint" id="pendingActionHint"></div>
+    </div>
+  </div>
+
+  <!-- 4. Backup & Schema -->
+  <h2>4. 백업 및 서버 연동 스키마</h2>
+  <div class="card">
+    <button class="btn" onclick="exportData()">JSON 파일 내보내기</button>
+    <button class="btn btn-ghost" onclick="exportSchema()">contracts/pds-schema-v2.json 보기/내보내기</button>
+    <button class="btn btn-danger" onclick="resetData()">전체 초기화</button>
+    <div class="schema-block" id="schemaPreview"></div>
+  </div>
+</div>
+
+<!-- Complete Modal -->
+<div class="modal-overlay" id="completeModal">
+  <div class="modal">
+    <h3>완료 및 실행 기록 작성</h3>
+    <div class="row"><label>시작 시각</label><input type="datetime-local" id="m_start"></div>
+    <div class="row"><label>종료 시각</label><input type="datetime-local" id="m_end"></div>
+    <div class="row"><label>실제로 걸린 시간(h)</label><input type="number" step="0.25" id="m_actual"></div>
+    <div class="row"><label>막혔던 이유 (선택)</label><textarea id="m_obstacle" rows="3" placeholder="어떤 부분이 어려웠는지 기록하세요"></textarea></div>
+    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px;">
+      <button class="btn btn-ghost" type="button" onclick="closeCompleteModal()">취소</button>
+      <button class="btn btn-actual" type="button" onclick="confirmComplete()">완료 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Record Modal -->
+<div class="modal-overlay" id="recordModal">
+  <div class="modal">
+    <h3>실행 기록 보기</h3>
+    <div id="recordModalBody" style="font-size:14px; line-height:1.8;"></div>
+    <div style="display:flex; justify-content:flex-end; margin-top:16px;">
+      <button class="btn btn-ghost" type="button" onclick="closeRecordModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// 1. Supabase 접속 정보
+const SUPABASE_URL = 'https://xidftozzvlclrscqtkgr.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_HwkhvkiH0vrc-J_4OFq4-w_e00inI7f';
+
+// 2. Supabase 클라이언트 생성 (변수명을 supabaseClient 등으로 변경)
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);  
+  const PDS_SCHEMA_V2 = {
+    "$schema": "pds-schema-v2",
+    "dateRules": {
+      "timezone": "Asia/Seoul",
+      "storedFormat": "ISO 8601 (UTC) for timestamps, YYYY-MM-DD for dates"
+    }
+  };
+
+  const DEFAULT_TODOS = [
+    { id: "t1", title: "과제1 나만의 포트폴리오", dueDate: "2026-08-16", priority: "HIGH", tags: "자기소개서, 기술스펙", estimatedHours: 5, status: "DONE" },
+    { id: "t2", title: "과제 2 미니게임", dueDate: "2026-08-22", priority: "HIGH", tags: "게임, JAVA, 바이브코딩", estimatedHours: 5, status: "DONE" },
+    { id: "t3", title: "과제3 짤카드 스튜디오", dueDate: "2026-08-25", priority: "HIGH", tags: "사진, 영상, SNS, 편집", estimatedHours: 5, status: "DONE" },
+    { id: "t4", title: "과제4 정보판", dueDate: "2026-08-28", priority: "MEDIUM", tags: "환율, 실시간", estimatedHours: 5, status: "DONE" },
+    { id: "t5", title: "과제5 끊임없는 프로젝트", dueDate: "2026-08-31", priority: "HIGH", tags: "자율, 바이브코딩, 창의성", estimatedHours: 5, status: "DONE" },
+    { id: "t6", title: "과제 6 다이어리", dueDate: "2026-09-04", priority: "MEDIUM", tags: "백엔드, 계획, 실행", estimatedHours: 4, status: "DONE" }
+  ];
+
+  const DEFAULT_RECORDS = [
+    { id: "e1", todoId: "t1", actualHours: 8, obstacleReason: "레이아웃 반응형 대응 문제 해결", completedAt: "2026-08-16T10:00:00.000Z" },
+    { id: "e2", todoId: "t2", actualHours: 7, obstacleReason: "알고리즘 설계 난이도 상승", completedAt: "2026-08-22T12:00:00.000Z" },
+    { id: "e3", todoId: "t3", actualHours: 7, obstacleReason: "이미지 리사이징 라이브러리 연동 이슈", completedAt: "2026-08-25T14:00:00.000Z" },
+    { id: "e4", todoId: "t4", actualHours: 6, obstacleReason: "API 응답 데이터 파싱 처리 지연", completedAt: "2026-08-28T16:00:00.000Z" },
+    { id: "e5", todoId: "t5", actualHours: 6, obstacleReason: "기능 확장 중 버그 트래킹", completedAt: "2026-08-31T18:00:00.000Z" },
+    { id: "e6", todoId: "t6", actualHours: 4, obstacleReason: "특이사항 없음", completedAt: "2026-09-01T09:00:00.000Z" }
+  ];
+
+  let db = {
+    plan: null,
+    planHistories: [],
+    todos: [],
+    executionRecords: [],
+    pendingActionItem: "",
+    actionItemLog: []
+  };
+
+  let filterState = { status: "ALL", priority: "ALL", sort: "DUE_DATE" };
+  let reviewPeriod = { start: "", end: "" };
+  let editingTodoId = null;
+  let pendingCompleteId = null;
+
+  const STORAGE_KEY = "pds_diary_v2";
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return "";
+    const div = document.createElement("div");
+    div.textContent = String(str);
+    return div.innerHTML;
+  }
+
+  function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function getSeoulToday() {
+    const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" });
+    return fmt.format(new Date());
+  }
+
+async function init() {
+  // 1. Supabase todos 테이블에서 데이터 가져오기
+  const { data, error } = await supabaseClient
+    .from('todos')
+    .select('*');
+
+  if (error) {
+    console.error('데이터 불러오기 실패:', error);
+    return;
+  }
+
+  // 2. DB에 데이터가 있으면 적용, 없으면 빈 배열
+  db.todos = data || [];
+  if (!db.executionRecords) db.executionRecords = [];
+  
+  // 3. 화면 다시 그리기
+  renderAll();
+}
+function saveData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+  renderAll();
+}
+
+  function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+    renderAll();
+  }
+
+  // ---- Plan Management ----
+  document.getElementById("planForm").onsubmit = function (e) {
+    e.preventDefault();
+    const newPlan = {
+      id: db.plan ? db.plan.id : uid(),
+      title: document.getElementById("p_title").value,
+      start: document.getElementById("p_start").value,
+      end: document.getElementById("p_end").value,
+      priority: document.getElementById("p_priority").value,
+      hours: parseFloat(document.getElementById("p_hours").value),
+      criteria: document.getElementById("p_criteria").value,
+      carriedActionItem: db.pendingActionItem || null
+    };
+
+    if (db.plan) {
+      db.planHistories.push({ ...db.plan, modified_at: new Date().toISOString() });
+      newPlan.id = uid();
+    }
+
+    if (db.pendingActionItem) {
+      db.actionItemLog.push({ text: db.pendingActionItem, applied_at: new Date().toISOString() });
+      db.pendingActionItem = "";
+    }
+
+    db.plan = newPlan;
+    saveData();
+    alert("계획이 저장되었습니다.");
+  };
+
+  function carryActionItem() {
+    const val = document.getElementById("actionItem").value.trim();
+    if (!val) { alert("고칠 점을 입력해주세요."); return; }
+    db.pendingActionItem = val;
+    document.getElementById("actionItem").value = "";
+    saveData();
+    alert("다음 계획 저장 시 반영되도록 등록되었습니다.");
+  }
+
+  // ---- Todo Add / Edit ----
+document.getElementById("todoForm").onsubmit = async function (e) {
+  e.preventDefault();
+
+  // 1. 입력값 가져오기
+  const newTodo = {
+    title: document.getElementById("t_title").value,
+    duedate: document.getElementById("t_due").value,
+    priority: document.getElementById("p_priority").value,
+    tags: document.getElementById("t_tags").value,
+    estimatedHours: parseFloat(document.getElementById("t_hours").value) || 0,
+    status: "TODO"
+  };
+
+  // 2. Supabase DB에 저장
+  const { error } = await supabaseClient
+    .from('todos')
+    .insert([newTodo]);
+
+  if (error) {
+    alert("저장 실패: " + error.message);
+  } else {
+    this.reset();
+    init(); // DB에서 최신 데이터 다시 불러오기
+  }
+};
+  window.editTodo = function(id) {
+    const todo = db.todos.find(t => t.id === id);
+    if (!todo) return;
+    editingTodoId = id;
+    document.getElementById("t_title").value = todo.title;
+    document.getElementById("t_due").value = todo.dueDate;
+    document.getElementById("t_priority").value = todo.priority;
+    document.getElementById("t_tags").value = todo.tags;
+    document.getElementById("t_hours").value = todo.estimatedHours;
+    document.getElementById("todoFormTitle").innerText = "할 일 수정";
+    document.getElementById("todoSubmitBtn").innerText = "수정 완료";
+    document.getElementById("todoCancelEditBtn").style.display = "inline-block";
+    document.getElementById("todoSection").scrollIntoView({ behavior: "smooth" });
+  };
+
+  function cancelEditTodo() {
+    editingTodoId = null;
+    document.getElementById("todoForm").reset();
+    document.getElementById("todoFormTitle").innerText = "할 일 추가";
+    document.getElementById("todoSubmitBtn").innerText = "할 일 등록";
+    document.getElementById("todoCancelEditBtn").style.display = "none";
+  }
+  document.getElementById("todoCancelEditBtn").onclick = cancelEditTodo;
+
+  // ---- Todo Actions ----
+  window.completeTodo = function(id) {
+    const todo = db.todos.find(t => t.id === id);
+    if (!todo || todo.status === "DONE") return;
+    pendingCompleteId = id;
+    const now = new Date();
+    const localNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    document.getElementById("m_start").value = localNow;
+    document.getElementById("m_end").value = localNow;
+    document.getElementById("m_actual").value = todo.estimatedHours;
+    document.getElementById("m_obstacle").value = "";
+    document.getElementById("completeModal").classList.add("open");
+  };
+
+  window.closeCompleteModal = function() {
+    pendingCompleteId = null;
+    document.getElementById("completeModal").classList.remove("open");
+  };
+
+  window.confirmComplete = function() {
+    const id = pendingCompleteId;
+    const todo = db.todos.find(t => t.id === id);
+    if (!todo || todo.status === "DONE") { closeCompleteModal(); return; }
+
+    const started = document.getElementById("m_start").value;
+    const ended = document.getElementById("m_end").value;
+    const actual = parseFloat(document.getElementById("m_actual").value) || todo.estimatedHours || 0;
+    const obstacle = document.getElementById("m_obstacle").value.trim();
+
+    todo.status = "DONE";
+    
+    db.executionRecords = db.executionRecords.filter(r => r.todoId !== id);
+    db.executionRecords.push({
+      id: uid(),
+      todoId: id,
+      startedAt: started ? new Date(started).toISOString() : "",
+      endedAt: ended ? new Date(ended).toISOString() : "",
+      actualHours: actual,
+      obstacleReason: obstacle,
+      completedAt: new Date().toISOString()
+    });
+
+    closeCompleteModal();
+    saveData();
+  };
+
+  window.revertTodo = function(id) {
+    const todo = db.todos.find(t => t.id === id);
+    if (!todo) return;
+    if (confirm(`'${todo.title}' 항목을 다시 진행중 상태로 변경하시겠습니까?`)) {
+      todo.status = "TODO";
+      db.executionRecords = db.executionRecords.filter(r => r.todoId !== id);
+      saveData();
+    }
+  };
+
+window.deleteTodo = async function(id) {
+  if (!confirm("정말 삭제하시겠습니까?")) return;
+
+  // Supabase DB에서 해당 id를 가진 행 삭제
+  const { error } = await supabaseClient
+    .from('todos')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    alert("삭제 실패: " + error.message);
+  } else {
+    init(); // DB 최신 상태로 새로고침
+  }
+};
+  // ---- Record Modal ----
+  window.showRecord = function(todoId) {
+    const todo = db.todos.find(t => t.id === todoId);
+    if (!todo) return;
+
+    const exec = db.executionRecords.find(r => r.todoId === todoId);
+    const fmt = t => t ? new Date(t).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) : "기록 없음";
+    
+    let html = `<div><b>할 일 명:</b> ${escapeHtml(todo.title)}</div>`;
+    if (exec) {
+      html += `
+        <div><b>시작 시간:</b> ${fmt(exec.startedAt)}</div>
+        <div><b>종료 시간:</b> ${fmt(exec.endedAt)}</div>
+        <div><b>실제 소요시간:</b> ${escapeHtml(exec.actualHours)}시간</div>
+        <div><b>막혔던 이유:</b> ${exec.obstacleReason ? `<span style="color:var(--danger);">${escapeHtml(exec.obstacleReason)}</span>` : '<span style="color:var(--ink-soft);">(특이사항 없음)</span>'}</div>
+        <div><b>완료 처리일시:</b> ${fmt(exec.completedAt)}</div>
+      `;
+    } else {
+      html += `
+        <div><b>실제 소요시간:</b> ${escapeHtml(todo.estimatedHours)}시간 (기본값)</div>
+        <div><b>막혔던 이유:</b> <span style="color:var(--ink-soft);">(특이사항 없음)</span></div>
+        <div style="color:var(--ink-soft); margin-top:8px; font-size:12px;">* 완료 상태이나 상세 타임스탬프 기록이 없는 항목입니다.</div>
+      `;
+    }
+
+    document.getElementById("recordModalBody").innerHTML = html;
+    document.getElementById("recordModal").classList.add("open");
+  };
+
+  window.closeRecordModal = function() {
+    document.getElementById("recordModal").classList.remove("open");
+  };
+
+  // ---- Filter & Render ----
+  function todoMatchesStatusFilter(t, today) {
+    switch (filterState.status) {
+      case "TODO": return t.status === "TODO";
+      case "DONE": return t.status === "DONE";
+      case "DELAYED": return t.status === "TODO" && t.dueDate < today;
+      case "OBSTACLE": {
+        const exec = db.executionRecords.find(r => r.todoId === t.id);
+        return !!(exec && exec.obstacleReason && exec.obstacleReason.trim() !== "");
+      }
+      default: return true;
+    }
+  }
+
+  window.filterTodoList = function(type) {
+    filterState.status = type;
+    document.getElementById("f_status").value = type;
+    renderAll();
+    document.getElementById("todoSection").scrollIntoView({ behavior: "smooth" });
+  };
+
+  document.getElementById("f_status").onchange = function () { filterState.status = this.value; renderAll(); };
+  document.getElementById("f_priority").onchange = function () { filterState.priority = this.value; renderAll(); };
+  document.getElementById("f_sort").onchange = function () { filterState.sort = this.value; renderAll(); };
+  document.getElementById("todoSearch").oninput = renderAll;
+
+  document.getElementById("rv_start").onchange = function () { reviewPeriod.start = this.value; renderAll(); };
+  document.getElementById("rv_end").onchange = function () { reviewPeriod.end = this.value; renderAll(); };
+  
+  window.clearReviewPeriod = function() {
+    reviewPeriod = { start: "", end: "" };
+    document.getElementById("rv_start").value = "";
+    document.getElementById("rv_end").value = "";
+    renderAll();
+  };
+
+  function inReviewPeriod(t) {
+    if (reviewPeriod.start && t.dueDate < reviewPeriod.start) return false;
+    if (reviewPeriod.end && t.dueDate > reviewPeriod.end) return false;
+    return true;
+  }
+
+  function renderAll() {
+    if (db.plan) {
+      document.getElementById("p_title").value = db.plan.title || "";
+      document.getElementById("p_start").value = db.plan.start || "";
+      document.getElementById("p_end").value = db.plan.end || "";
+      document.getElementById("p_priority").value = db.plan.priority || "MEDIUM";
+      document.getElementById("p_hours").value = db.plan.hours || "";
+      document.getElementById("p_criteria").value = db.plan.criteria || "";
+    }
+
+    const carriedArea = document.getElementById("carriedArea");
+    if (db.plan && db.plan.carriedActionItem) {
+      carriedArea.innerHTML = `<div class="carried">🔁 이전 돌아보기 반영사항: <b>${escapeHtml(db.plan.carriedActionItem)}</b></div>`;
+    } else if (db.pendingActionItem) {
+      carriedArea.innerHTML = `<div class="carried">⏳ 다음 계획 반영 예정: <b>${escapeHtml(db.pendingActionItem)}</b></div>`;
+    } else {
+      carriedArea.innerHTML = "";
+    }
+
+    const histArea = document.getElementById("planHistoryArea");
+    if (db.planHistories && db.planHistories.length > 0) {
+      histArea.innerHTML = "<b>계획 변경 이력:</b>" +
+        db.planHistories.map(h =>
+          `<div class="plan-history-item">[${escapeHtml((h.modified_at || "").slice(0, 10))}] ${escapeHtml(h.title)} (${escapeHtml(h.start)}~${escapeHtml(h.end)}) — ${escapeHtml(h.priority)}</div>`
+        ).join("");
+    } else histArea.innerHTML = "";
+
+    document.getElementById("pendingActionHint").innerText = db.pendingActionItem
+      ? `대기 중: "${db.pendingActionItem}"`
+      : "";
+
+    const today = getSeoulToday();
+    const search = document.getElementById("todoSearch").value.toLowerCase();
+    
+    let visibleTodos = db.todos.filter(t =>
+      (t.title.toLowerCase().includes(search) || (t.tags && t.tags.toLowerCase().includes(search))) &&
+      (filterState.priority === "ALL" || t.priority === filterState.priority) &&
+      todoMatchesStatusFilter(t, today)
+    );
+
+    const pRank = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+    let sortDisplayText = "";
+
+    switch (filterState.sort) {
+      case "PRIORITY":
+        visibleTodos.sort((a, b) => pRank[a.priority] - pRank[b.priority] || a.dueDate.localeCompare(b.dueDate));
+        sortDisplayText = "📍 현재 정렬: 우선순위 높은 순 (HIGH → LOW) → 마감일 순";
+        break;
+      case "ESTIMATED_HOURS":
+        visibleTodos.sort((a, b) => b.estimatedHours - a.estimatedHours || a.dueDate.localeCompare(b.dueDate));
+        sortDisplayText = "📍 현재 정렬: 예상시간 많은 순 → 마감일 순";
+        break;
+      case "TITLE":
+        visibleTodos.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
+        sortDisplayText = "📍 현재 정렬: 제목 순 (가나다)";
+        break;
+      case "DUE_DATE":
+      default:
+        visibleTodos.sort((a, b) => a.dueDate.localeCompare(b.dueDate) || pRank[a.priority] - pRank[b.priority]);
+        sortDisplayText = "📍 현재 정렬: 마감일 오름차순 → 우선순위 높은 순";
+        break;
+    }
+    document.getElementById("sortCriteriaDisplay").innerText = sortDisplayText;
+
+    const tbody = document.getElementById("todoTableBody");
+    tbody.innerHTML = visibleTodos.map(t => {
+      const exec = db.executionRecords.find(r => r.todoId === t.id);
+      const isDelayed = t.status === "TODO" && t.dueDate < today;
+      const actualHoursText = exec ? `${exec.actualHours}h` : (t.status === "DONE" ? `${t.estimatedHours}h` : "-");
+      
+      return `<tr>
+        <td>${t.status === "DONE" ? "✅ 완료" : (isDelayed ? "⚠️ 지연" : "⏳ 진행중")}</td>
+        <td><b>${escapeHtml(t.title)}</b></td>
+        <td>${escapeHtml(t.dueDate)}</td>
+        <td><span class="badge badge-${t.priority}">${t.priority}</span></td>
+        <td>${escapeHtml(t.tags || "-")}</td>
+        <td>${escapeHtml(t.estimatedHours)}h</td>
+        <td>${actualHoursText}</td>
+        <td><button class="btn btn-ghost btn-sm" onclick="showRecord('${t.id}')">보기</button></td>
+        <td style="white-space:nowrap;">
+          ${t.status === "TODO" ? `<button class="btn btn-actual btn-sm" onclick="completeTodo('${t.id}')">완료</button>` : `<button class="btn btn-ghost btn-sm" style="background:#6B7FA3; color:#fff;" onclick="revertTodo('${t.id}')">되돌리기</button>`}
+          <button class="btn btn-ghost btn-sm" onclick="editTodo('${t.id}')">수정</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteTodo('${t.id}')">삭제</button>
+        </td>
+      </tr>`;
+    }).join("") || `<tr><td colspan="9" style="text-align:center; color:var(--ink-soft); padding:20px;">조건에 맞는 항목이 없습니다.</td></tr>`;
+
+    document.querySelectorAll(".stat-box[data-type]").forEach(b => {
+      b.classList.toggle("active", b.dataset.type === filterState.status);
+    });
+
+    const periodTodos = db.todos.filter(inReviewPeriod);
+    const totalPlan = periodTodos.length;
+    const totalDone = periodTodos.filter(t => t.status === "DONE").length;
+    const totalDelayed = periodTodos.filter(t => t.status === "TODO" && t.dueDate < today).length;
+    
+    const periodIds = new Set(periodTodos.map(t => t.id));
+    const periodExec = db.executionRecords.filter(r => periodIds.has(r.todoId));
+    const totalObstacle = periodTodos.filter(t => {
+      const exec = db.executionRecords.find(r => r.todoId === t.id);
+      return !!(exec && exec.obstacleReason && exec.obstacleReason.trim() !== "");
+    }).length;
+
+    const totalEst = periodTodos.reduce((acc, t) => acc + (t.estimatedHours || 0), 0);
+    const totalAct = periodExec.reduce((acc, r) => acc + (r.actualHours || 0), 0);
+    const diff = totalAct - totalEst;
+
+    document.getElementById("statPlan").innerText = totalPlan;
+    document.getElementById("statDone").innerText = totalDone;
+    document.getElementById("statDelayed").innerText = totalDelayed;
+    document.getElementById("statObstacle").innerText = totalObstacle;
+    document.getElementById("statDiff").innerText = `${diff >= 0 ? "+" : ""}${Math.round(diff * 100) / 100}h`;
+
+    document.getElementById("periodLabel").innerText =
+      (reviewPeriod.start || reviewPeriod.end)
+        ? `집계 기간: ${reviewPeriod.start || "처음"} ~ ${reviewPeriod.end || "지금"}`
+        : "집계 기간: 전체";
+  }
+
+  window.exportData = function() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
+    const dlAnchor = document.createElement("a");
+    dlAnchor.setAttribute("href", dataStr);
+    dlAnchor.setAttribute("download", `pds-diary-${getSeoulToday()}.json`);
+    dlAnchor.click();
+  };
+
+  window.exportSchema = function() {
+    const dataStr = "data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify(PDS_SCHEMA_V2, null, 2));
+    const dlAnchor = document.createElement("a");
+    dlAnchor.setAttribute("href", dataStr);
+    dlAnchor.setAttribute("download", "pds-schema-v2.json");
+    dlAnchor.click();
+  };
+
+  window.resetData = function() {
+    if (confirm("데이터를 초기화하시겠습니까? 초기 샘플 데이터로 복구됩니다.")) {
+      localStorage.removeItem(STORAGE_KEY);
+      db = { plan: null, planHistories: [], todos: [], executionRecords: [], pendingActionItem: "", actionItemLog: [] };
+      cancelEditTodo();
+      init();
+    }
+  };
+
+  init();
+</script>
+</body>
+</html>

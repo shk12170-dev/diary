@@ -1,0 +1,52 @@
+{
+  "version": "2.0",
+  "timezone": "Asia/Seoul",
+  "tables": {
+    "plans": {
+      "columns": {
+        "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+        "title": "TEXT NOT NULL",
+        "period_start": "TEXT NOT NULL",
+        "period_end": "TEXT NOT NULL",
+        "priority": "TEXT CHECK(priority IN ('HIGH', 'MEDIUM', 'LOW')) NOT NULL",
+        "success_criteria": "TEXT NOT NULL",
+        "estimated_hours": "REAL NOT NULL",
+        "created_at": "DATETIME DEFAULT CURRENT_TIMESTAMP"
+      }
+    },
+    "plan_histories": {
+      "columns": {
+        "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+        "plan_id": "INTEGER NOT NULL",
+        "title": "TEXT NOT NULL",
+        "period_start": "TEXT NOT NULL",
+        "period_end": "TEXT NOT NULL",
+        "priority": "TEXT NOT NULL",
+        "success_criteria": "TEXT NOT NULL",
+        "estimated_hours": "REAL NOT NULL",
+        "modified_at": "DATETIME DEFAULT CURRENT_TIMESTAMP"
+      }
+    },
+    "todos": {
+      "columns": {
+        "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+        "title": "TEXT NOT NULL",
+        "status": "TEXT CHECK(status IN ('TODO', 'DONE')) DEFAULT 'TODO'",
+        "due_date": "TEXT NOT NULL",
+        "priority": "TEXT CHECK(priority IN ('HIGH', 'MEDIUM', 'LOW')) NOT NULL",
+        "tags": "TEXT",
+        "estimated_hours": "REAL NOT NULL"
+      }
+    },
+    "execution_records": {
+      "columns": {
+        "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+        "todo_id": "INTEGER UNIQUE NOT NULL",
+        "idempotency_key": "TEXT UNIQUE NOT NULL",
+        "actual_hours": "REAL NOT NULL",
+        "obstacle_reason": "TEXT",
+        "completed_at": "DATETIME DEFAULT CURRENT_TIMESTAMP"
+      }
+    }
+  }
+}
