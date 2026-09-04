@@ -155,6 +155,11 @@
   <h2>4. 백업 및 서버 연동 스키마</h2>
   <div class="card">
     <button class="btn" onclick="exportData()">JSON 파일 내보내기</button>
+    
+    <!-- JSON 파일 가져오기 버튼 및 숨김 input 추가 -->
+    <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importData(event)">
+    <button class="btn btn-actual" onclick="document.getElementById('importFileInput').click()">JSON 파일 가져오기</button>
+    
     <button class="btn btn-ghost" onclick="exportSchema()">contracts/pds-schema-v2.json 보기/내보내기</button>
     <button class="btn btn-danger" onclick="resetData()">전체 초기화</button>
     <div class="hint" style="margin-top:10px;">아래는 서버 DB 전환 시 사용할 표·항목·관계·날짜 규칙 정의입니다. 지금은 이 정의를 기준으로 브라우저(localStorage)에만 저장하고 있습니다.</div>
@@ -188,7 +193,6 @@
 
 <script>
   // ---- contracts/pds-schema-v2.json 에 대응하는 스키마 정의 ----
-  // 서버 DB로 옮길 때 이 정의를 그대로 테이블/컬럼 설계에 사용합니다.
   const PDS_SCHEMA_V2 = {
     "$schema": "pds-schema-v2",
     "dateRules": {
@@ -322,7 +326,6 @@
 
     if (db.plan) {
       db.planHistories.push({ ...db.plan, modified_at: new Date().toISOString() });
-      // 계획을 고치는 경우 새 id를 부여해 이전 계획과 구분한다
       newPlan.id = uid();
     }
 
@@ -398,7 +401,7 @@
   // ---- 카드 2: 완료 처리(중복 방지) / 되돌리기 / 삭제 ----
   function completeTodo(id) {
     const todo = db.todos.find(t => t.id === id);
-    if (!todo || todo.status === "DONE") return; // 중복 완료 방지
+    if (!todo || todo.status === "DONE") return;
     pendingCompleteId = id;
     const now = new Date();
     const localNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
@@ -428,7 +431,7 @@
   function confirmComplete() {
     const id = pendingCompleteId;
     const todo = db.todos.find(t => t.id === id);
-    if (!todo || todo.status === "DONE") { closeCompleteModal(); return; } // 이중 클릭 방지
+    if (!todo || todo.status === "DONE") { closeCompleteModal(); return; }
 
     const started = document.getElementById("m_start").value;
     const ended = document.getElementById("m_end").value;
@@ -525,7 +528,6 @@
 
   // ---- 렌더링 ----
   function renderAll() {
-    // 1. 계획 및 이력
     if (db.plan) {
       document.getElementById("p_title").value = db.plan.title;
       document.getElementById("p_start").value = db.plan.start;
@@ -533,6 +535,8 @@
       document.getElementById("p_priority").value = db.plan.priority;
       document.getElementById("p_hours").value = db.plan.hours;
       document.getElementById("p_criteria").value = db.plan.criteria;
+    } else {
+      document.getElementById("planForm").reset();
     }
 
     const carriedArea = document.getElementById("carriedArea");
@@ -545,7 +549,7 @@
     }
 
     const histArea = document.getElementById("planHistoryArea");
-    if (db.planHistories.length > 0) {
+    if (db.planHistories && db.planHistories.length > 0) {
       histArea.innerHTML = "<b>계획 변경 이력 (고치기 전 값, 처음 계획부터 그대로 보존됨):</b>" +
         db.planHistories.map(h =>
           `<div class="plan-history-item">[${escapeHtml((h.modified_at || "").slice(0, 10))}] ${escapeHtml(h.title)} · 기간 ${escapeHtml(h.start)}~${escapeHtml(h.end)} · 우선순위 ${escapeHtml(h.priority)} · ${escapeHtml(h.hours)}h — ${escapeHtml(h.criteria)}</div>`
@@ -556,10 +560,9 @@
       ? `대기 중: "${db.pendingActionItem}" (다음 계획 저장 시 반영)`
       : "";
 
-    // 2. 할 일 테이블
     const today = getSeoulToday();
     const search = document.getElementById("todoSearch").value.toLowerCase();
-    let visibleTodos = db.todos.filter(t =>
+    let visibleTodos = (db.todos || []).filter(t =>
       (t.title.toLowerCase().includes(search) || t.tags.toLowerCase().includes(search)) &&
       (filterState.priority === "ALL" || t.priority === filterState.priority) &&
       todoMatchesStatusFilter(t, today)
@@ -572,7 +575,7 @@
 
     const tbody = document.getElementById("todoTableBody");
     tbody.innerHTML = visibleTodos.map(t => {
-      const exec = db.executionRecords.find(r => r.todoId === t.id);
+      const exec = (db.executionRecords || []).find(r => r.todoId === t.id);
       const isDelayed = t.status === "TODO" && t.dueDate < today;
       return `<tr>
         <td>${t.status === "DONE" ? "✅ 완료" : (isDelayed ? "⚠️ 지연" : "⏳ 진행중")}</td>
@@ -595,15 +598,14 @@
       b.classList.toggle("active", b.dataset.type === filterState.status);
     });
 
-    // 3. 돌아보기 집계 (기간 반영)
-    const periodTodos = db.todos.filter(inReviewPeriod);
+    const periodTodos = (db.todos || []).filter(inReviewPeriod);
     const totalPlan = periodTodos.length;
     const totalDone = periodTodos.filter(t => t.status === "DONE").length;
     const totalDelayed = periodTodos.filter(t => t.status === "TODO" && t.dueDate < today).length;
     const periodIds = new Set(periodTodos.map(t => t.id));
-    const periodExec = db.executionRecords.filter(r => periodIds.has(r.todoId));
+    const periodExec = (db.executionRecords || []).filter(r => periodIds.has(r.todoId));
     const totalObstacle = periodTodos.filter(t => {
-      const exec = db.executionRecords.find(r => r.todoId === t.id);
+      const exec = (db.executionRecords || []).find(r => r.todoId === t.id);
       return !!(exec && exec.obstacleReason && exec.obstacleReason.trim() !== "");
     }).length;
 
@@ -623,13 +625,44 @@
         : "집계 기간: 전체";
   }
 
-  // ---- 내보내기 / 초기화 ----
+  // ---- 내보내기 / 가져오기 / 초기화 ----
   function exportData() {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
     const dlAnchor = document.createElement("a");
     dlAnchor.setAttribute("href", dataStr);
     dlAnchor.setAttribute("download", `pds-diary-${getSeoulToday()}.json`);
     dlAnchor.click();
+  }
+
+  // JSON 파일 읽어서 데이터 불러오기 기능
+  function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const importedData = JSON.parse(e.target.result);
+        if (confirm("기존 데이터가 파일 데이터로 대체됩니다. 불러오시겠습니까?")) {
+          db = {
+            plan: importedData.plan || null,
+            planHistories: importedData.planHistories || [],
+            todos: importedData.todos || [],
+            executionRecords: importedData.executionRecords || [],
+            pendingActionItem: importedData.pendingActionItem || "",
+            actionItemLog: importedData.actionItemLog || []
+          };
+          cancelEditTodo();
+          saveData();
+          alert("성공적으로 데이터를 불러왔습니다.");
+        }
+      } catch (err) {
+        alert("올바른 JSON 파일 형식이 아닙니다.");
+        console.error(err);
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = ""; // 동일한 파일 연속 선택 가능하도록 초기화
   }
 
   function exportSchema() {
