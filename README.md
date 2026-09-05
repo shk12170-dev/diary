@@ -1,7 +1,6 @@
-<<<<<<< HEAD
 # diary
-=======
-# 공개주소 : https://shk12170-dev.github.io/diary/ 
+
+# 공개주소 : https://shk12170-dev.github.io/diary/
 # 배포주소 : https://diary-nine-omega.vercel.app
 # 소스주소 : https://github.com/shk12170-dev/diary/tree/a0080ad39b723b4d0bc13942712572efad8af4b8
 
