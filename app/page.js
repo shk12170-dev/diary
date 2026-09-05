@@ -2,7 +2,7 @@
 'use client' // 브라우저에서 화면을 바꿀 수 있게 설정
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase' // 1단계에서 만든 전화기 불러오기
+import { supabase } from '../lib/supabase'
 
 export default function Home() {
   // DB에서 가져온 할 일 목록을 담아둘 바구니(state)
