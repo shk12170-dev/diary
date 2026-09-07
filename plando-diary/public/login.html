@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>로그인 — 플랜두씨 다이어리</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EFF1E6; --paper-card:#FBFAF3; --ink:#2B2A28; --ink-soft:#63604F;
+    --line:rgba(43,42,40,0.14); --plan:#6B7FA3; --danger:#B23A3A; --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+       background:var(--paper); color:var(--ink); font-family:'Noto Sans KR', sans-serif;}
+  .box{background:var(--paper-card); border:1px solid var(--line); border-radius:var(--radius);
+       padding:32px; width:min(380px, 92vw); box-shadow:0 4px 18px rgba(0,0,0,0.08);}
+  h1{font-family:'Gowun Batang', serif; font-size:22px; margin:0 0 4px;}
+  .sub{font-size:13px; color:var(--ink-soft); margin-bottom:20px;}
+  .tabs{display:flex; margin-bottom:18px; border-bottom:1px solid var(--line);}
+  .tab{flex:1; text-align:center; padding:8px 0; cursor:pointer; font-weight:600; color:var(--ink-soft); font-size:14px;}
+  .tab.active{color:var(--plan); border-bottom:2px solid var(--plan);}
+  label{display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin:10px 0 4px;}
+  input{width:100%; padding:10px; border:1px solid var(--line); border-radius:6px; font-family:inherit;}
+  .btn{width:100%; margin-top:16px; padding:10px; border:none; border-radius:6px; background:var(--plan);
+       color:#fff; font-weight:600; cursor:pointer; font-size:14px;}
+  .btn:disabled{opacity:.6; cursor:not-allowed;}
+  .msg{margin-top:12px; font-size:13px; padding:8px 10px; border-radius:6px; display:none;}
+  .msg.err{display:block; background:#FBEAEA; color:var(--danger);}
+  .msg.ok{display:block; background:#EAF2ED; color:#2f6b48;}
+  .hint{font-size:11px; color:var(--ink-soft); margin-top:14px; line-height:1.5;}
+  form{display:none;}
+  form.active{display:block;}
+</style>
+</head>
+<body>
+  <div class="box">
+    <h1>플랜두씨 다이어리</h1>
+    <div class="sub">로그인 후에만 내 기록을 볼 수 있습니다.</div>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="login">로그인</div>
+      <div class="tab" data-tab="register">회원가입</div>
+    </div>
+
+    <form id="loginForm" class="active">
+      <label>아이디</label>
+      <input type="text" id="l_username" autocomplete="username" required>
+      <label>비밀번호</label>
+      <input type="password" id="l_password" autocomplete="current-password" required>
+      <button class="btn" type="submit">로그인</button>
+    </form>
+
+    <form id="registerForm">
+      <label>아이디 (영문/숫자/밑줄 3~20자)</label>
+      <input type="text" id="r_username" autocomplete="username" required>
+      <label>비밀번호 (8자 이상)</label>
+      <input type="password" id="r_password" autocomplete="new-password" required minlength="8">
+      <button class="btn" type="submit">가입하기</button>
+    </form>
+
+    <div class="msg" id="msg"></div>
+    <div class="hint">비밀번호는 서버에서 bcrypt로 단방향 해시되어 저장됩니다. 이 화면과 서버 어디에도 원문 비밀번호를 남기지 않습니다.</div>
+  </div>
+
+<script>
+  const msgBox = document.getElementById("msg");
+  function showMsg(text, ok) {
+    msgBox.textContent = text;
+    msgBox.className = "msg " + (ok ? "ok" : "err");
+  }
+
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.onclick = () => {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll("form").forEach(f => f.classList.remove("active"));
+      tab.classList.add("active");
+      document.getElementById(tab.dataset.tab + "Form").classList.add("active");
+      msgBox.className = "msg";
+    };
+  });
+
+  // 이미 로그인되어 있으면 바로 다이어리로 이동
+  fetch("/api/auth/me", { credentials: "include" })
+    .then(r => r.ok ? location.replace("/diary") : null)
+    .catch(() => {});
+
+  document.getElementById("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const username = document.getElementById("l_username").value.trim();
+    const password = document.getElementById("l_password").value;
+    const res = await fetch("/api/auth/login", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      credentials: "include", body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (!res.ok) { showMsg(data.error || "로그인에 실패했습니다.", false); return; }
+    location.href = "/diary";
+  });
+
+  document.getElementById("registerForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const username = document.getElementById("r_username").value.trim();
+    const password = document.getElementById("r_password").value;
+    const res = await fetch("/api/auth/register", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      credentials: "include", body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (!res.ok) { showMsg(data.error || "가입에 실패했습니다.", false); return; }
+    showMsg("가입이 완료되었습니다. 이제 로그인해 주세요.", true);
+    document.querySelector('.tab[data-tab="login"]').click();
+    document.getElementById("l_username").value = username;
+  });
+</script>
+</body>
+</html>

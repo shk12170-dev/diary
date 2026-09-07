@@ -1,0 +1,120 @@
+=== [카드2-C103/C104] DB에 저장된 두 계정의 비밀번호 해시 (동일 비밀번호, 값은 서로 다름) ===
+alice -> $2a$12$udB80Rg493.Dqfued2n7u.pft7v4B1sJcAX6aO1enAEiqqDTHlt3C
+bob -> $2a$12$C2kCNeswgqIYXBvHEeTsE.xjV.gYuFhrdoCq111wnF8L/CwHmQ2lS
+
+=== [카드3-C108/C109] alice 로그인 상태로 내 할일 목록 조회 -> 200, 로그아웃 후 같은 쿠키로 재요청 -> 401 ===
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 2
+ETag: W/"2-l9Fw4VUO7kr8CvBlt4zaMCqXZ0w"
+
+-- 로그아웃 실행함 --
+HTTP/1.1 401 Unauthorized
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 98
+ETag: W/"62-TR5mMdR/AAESlOnLJpPh2lNTKr8"
+
+
+=== [카드4] alice가 자기 할일 생성 ===
+{"id":"af1f72b7-83ca-4c91-802e-3c7c1d668b61","ownerId":"5deaa8d2-6df9-4c73-bd24-0d296c831c8a","title":"과제7 인증 붙이기","dueDate":"2026-09-10","priority":"HIGH","tags":"과제","estimatedHours":3,"status":"TODO","updatedAt":"2026-09-07T07:26:22.335Z"}
+ALICE_TODO_ID=af1f72b7-83ca-4c91-802e-3c7c1d668b61
+
+=== [카드4-C117] bob이 alice의 할일을 단건 조회 시도 -> 404 ===
+HTTP/1.1 404 Not Found
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 53
+ETag: W/"35-rLcjJL3zLJvZin1DI96V1eUqZe0"
+Date: Mon, 07 Sep 2026 07:26:22 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"error":"해당 자료를 찾을 수 없습니다."}
+
+=== [카드4-C118] bob이 alice의 할일을 수정 시도 -> 404 ===
+HTTP/1.1 404 Not Found
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 53
+ETag: W/"35-rLcjJL3zLJvZin1DI96V1eUqZe0"
+Date: Mon, 07 Sep 2026 07:26:22 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"error":"해당 자료를 찾을 수 없습니다."}
+
+=== [카드4-C119] bob이 alice의 할일을 삭제 시도 -> 404 ===
+HTTP/1.1 404 Not Found
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 53
+ETag: W/"35-rLcjJL3zLJvZin1DI96V1eUqZe0"
+Date: Mon, 07 Sep 2026 07:26:22 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"error":"해당 자료를 찾을 수 없습니다."}
+
+=== [카드4-C116 확인] 거절 이후에도 alice의 할일이 그대로인지(위조/삭제 안됨) ===
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 260
+ETag: W/"104-KOzS24FOsLwo9TnUOG1eTQno2BM"
+Date: Mon, 07 Sep 2026 07:26:22 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"id":"af1f72b7-83ca-4c91-802e-3c7c1d668b61","ownerId":"5deaa8d2-6df9-4c73-bd24-0d296c831c8a","title":"과제7 인증 붙이기","dueDate":"2026-09-10","priority":"HIGH","tags":"과제","estimatedHours":3,"status":"TODO","updatedAt":"2026-09-07T07:26:22.335Z"}
+
+=== [카드4-C125] bob의 목록 조회에 alice 자료가 섞이는지 확인 (비어있어야 함) ===
+[]
+
+=== [카드4] 정상 소유자(alice)는 자기 할일 수정 성공 ===
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 272
+ETag: W/"110-ftPIepgKu62I4CGmUnvFrdmrU1M"
+Date: Mon, 07 Sep 2026 07:26:22 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"id":"af1f72b7-83ca-4c91-802e-3c7c1d668b61","ownerId":"5deaa8d2-6df9-4c73-bd24-0d296c831c8a","title":"과제7 인증 붙이기 (수정됨)","dueDate":"2026-09-10","priority":"HIGH","tags":"과제","estimatedHours":3,"status":"TODO","updatedAt":"2026-09-07T07:26:22.423Z"}
+
+=== [카드3-C112] 세션 값이 응답 바디/URL에 실리지 않는지 -> Set-Cookie 헤더로만 전달됨 (login 응답 재확인) ===
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Set-Cookie: session=(마스킹됨); Max-Age=1800; Path=/; Expires=Mon, 07 Sep 2026 07:56:22 GMT; HttpOnly; SameSite=Lax
+Content-Type: application/json; charset=utf-8
+Content-Length: 62
+ETag: W/"3e-hyKBWZyEfsn1W1es3/BfqA6JEkg"
+Date: Mon, 07 Sep 2026 07:26:22 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"id":"ba15ad17-fcf5-4254-b3e1-ea00f9b783af","username":"bob"}
+
+=== [카드3-C111] 만료 시각 테스트: TTL=3초로 설정 후 로그인 즉시 요청(200) vs 4초 뒤 같은 쿠키로 요청(401) ===
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+-- 4초 대기 --
+HTTP/1.1 401 Unauthorized
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+
+
+=== [카드4] 반대 방향: alice가 bob 소유 자료(존재하지 않아도) ID 임의로 접근 시도 -> 404 ===
+HTTP/1.1 404 Not Found
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 53
+ETag: W/"35-rLcjJL3zLJvZin1DI96V1eUqZe0"
+Date: Mon, 07 Sep 2026 07:26:39 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"error":"해당 자료를 찾을 수 없습니다."}

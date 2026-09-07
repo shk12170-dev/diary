@@ -1,0 +1,18 @@
+{
+  "name": "plando-diary-auth",
+  "version": "1.0.0",
+  "description": "플랜두씨 다이어리 2 - 인증 추가 (과제7)",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.4.5"
+  }
+}

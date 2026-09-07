@@ -1,0 +1,178 @@
+{
+  "plan": {
+    "id": "mtm9trnhduei2v",
+    "title": "SKT ALEPH 과제",
+    "start": "2026-08-11",
+    "end": "2026-11-12",
+    "priority": "MEDIUM",
+    "hours": 420,
+    "criteria": "주간 과제 완료",
+    "carriedActionItem": null
+  },
+  "planHistories": [
+    {
+      "id": "mtm7ajoo74yayc",
+      "title": "SKT ALEPH 과제",
+      "start": "2026-08-11",
+      "end": "2026-11-12",
+      "priority": "MEDIUM",
+      "hours": 420,
+      "criteria": "주간 과제 완료",
+      "carriedActionItem": null,
+      "modified_at": "2026-09-04T00:13:24.958Z"
+    },
+    {
+      "id": "mtm7al3yejgoat",
+      "title": "SKT ALEPH 과제",
+      "start": "2026-08-11",
+      "end": "2026-11-12",
+      "priority": "MEDIUM",
+      "hours": 420,
+      "criteria": "주간 과제 완료",
+      "carriedActionItem": null,
+      "modified_at": "2026-09-04T00:13:25.907Z"
+    },
+    {
+      "id": "mtm7alub5ws706",
+      "title": "SKT ALEPH 과제",
+      "start": "2026-08-11",
+      "end": "2026-11-12",
+      "priority": "MEDIUM",
+      "hours": 420,
+      "criteria": "주간 과제 완료",
+      "carriedActionItem": null,
+      "modified_at": "2026-09-04T00:13:26.697Z"
+    },
+    {
+      "id": "mtm7amg93yeeht",
+      "title": "SKT ALEPH 과제",
+      "start": "2026-08-11",
+      "end": "2026-11-12",
+      "priority": "MEDIUM",
+      "hours": 420,
+      "criteria": "주간 과제 완료",
+      "carriedActionItem": null,
+      "modified_at": "2026-09-04T01:24:19.133Z"
+    }
+  ],
+  "todos": [
+    {
+      "id": "mtm9txs03pkdu5",
+      "title": "과제 1 나를 소개하는 한 페이지",
+      "dueDate": "2026-08-16",
+      "priority": "LOW",
+      "tags": "자기소개서, 기술 스펙",
+      "estimatedHours": 4,
+      "status": "DONE"
+    },
+    {
+      "id": "mtm9yhyyv5pvy7",
+      "title": "과제 2 내가 설계한 미니게임",
+      "dueDate": "2026-08-19",
+      "priority": "LOW",
+      "tags": "프론트엔드, 게임",
+      "estimatedHours": 6,
+      "status": "DONE"
+    },
+    {
+      "id": "mtm9z22p8bz6t4",
+      "title": "과제 3 짤카드 스튜디오",
+      "dueDate": "2026-08-23",
+      "priority": "MEDIUM",
+      "tags": "사진, SNS, 편집",
+      "estimatedHours": 4,
+      "status": "DONE"
+    },
+    {
+      "id": "mtm9zpuavgg0mr",
+      "title": "과제 4 오늘의 진짜 정보판",
+      "dueDate": "2026-08-26",
+      "priority": "MEDIUM",
+      "tags": "변동성 있는, 실제 정보",
+      "estimatedHours": 6,
+      "status": "DONE"
+    },
+    {
+      "id": "mtma0f1t9tbskt",
+      "title": "과제 5 대화가 끊겨도 이어지는 프로젝트",
+      "dueDate": "2026-08-30",
+      "priority": "HIGH",
+      "tags": "과제3, 과제4, AI, 연계",
+      "estimatedHours": 4,
+      "status": "DONE"
+    },
+    {
+      "id": "mtma19c0v9vtq4",
+      "title": "과제 6 플랜두씨 다이어리 1",
+      "dueDate": "2026-09-02",
+      "priority": "HIGH",
+      "tags": "플랜, 계획, 다이어리",
+      "estimatedHours": 8,
+      "status": "DONE"
+    }
+  ],
+  "executionRecords": [
+    {
+      "id": "mtma2gr154v1o1",
+      "todoId": "mtm9txs03pkdu5",
+      "idempotencyKey": "todo_mtm9txs03pkdu5_done",
+      "startedAt": "2026-08-14T06:00:00.000Z",
+      "endedAt": "2026-08-16T08:00:00.000Z",
+      "actualHours": 8,
+      "obstacleReason": "배포 기술 미흡",
+      "completedAt": "2026-09-04T01:31:04.909Z"
+    },
+    {
+      "id": "mtma33zld6c2mw",
+      "todoId": "mtm9yhyyv5pvy7",
+      "idempotencyKey": "todo_mtm9yhyyv5pvy7_done",
+      "startedAt": "2026-08-17T06:00:00.000Z",
+      "endedAt": "2026-08-19T06:00:00.000Z",
+      "actualHours": 10,
+      "obstacleReason": "",
+      "completedAt": "2026-09-04T01:31:35.025Z"
+    },
+    {
+      "id": "mtma3ryhgvxe27",
+      "todoId": "mtm9z22p8bz6t4",
+      "idempotencyKey": "todo_mtm9z22p8bz6t4_done",
+      "startedAt": "2026-08-20T06:00:00.000Z",
+      "endedAt": "2026-08-23T07:00:00.000Z",
+      "actualHours": 10,
+      "obstacleReason": "",
+      "completedAt": "2026-09-04T01:32:06.089Z"
+    },
+    {
+      "id": "mtma4vlsjicxqf",
+      "todoId": "mtm9zpuavgg0mr",
+      "idempotencyKey": "todo_mtm9zpuavgg0mr_done",
+      "startedAt": "2026-08-24T06:00:00.000Z",
+      "endedAt": "2026-08-26T08:00:00.000Z",
+      "actualHours": 12,
+      "obstacleReason": "실제 정보 연동 지연",
+      "completedAt": "2026-09-04T01:32:57.472Z"
+    },
+    {
+      "id": "mtma64pt0w9w7u",
+      "todoId": "mtma0f1t9tbskt",
+      "idempotencyKey": "todo_mtma0f1t9tbskt_done",
+      "startedAt": "2026-08-27T06:00:00.000Z",
+      "endedAt": "2026-08-30T07:00:00.000Z",
+      "actualHours": 10,
+      "obstacleReason": "2개 AI 연계해서 과제 수행 어려움",
+      "completedAt": "2026-09-04T01:33:55.937Z"
+    },
+    {
+      "id": "mtma72u63uzwmq",
+      "todoId": "mtma19c0v9vtq4",
+      "idempotencyKey": "todo_mtma19c0v9vtq4_done",
+      "startedAt": "2026-08-31T06:00:00.000Z",
+      "endedAt": "2026-09-02T07:00:00.000Z",
+      "actualHours": 14,
+      "obstacleReason": "DB 연동 어려움",
+      "completedAt": "2026-09-04T01:34:40.158Z"
+    }
+  ],
+  "pendingActionItem": "바이브 코딩 숙달 및 AI 명령어 구체화 요망",
+  "actionItemLog": []
+}
