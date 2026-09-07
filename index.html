@@ -57,7 +57,7 @@
 
 <h1 class="page-title">플랜두씨 다이어리 — Plan-Do-See</h1>
 
-<!-- 로그인 / 회원가입 화면 -->
+<!-- 1. 비로그인 상태일 때 보이는 영역 -->
 <div id="auth-section" style="margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 8px;">
   <h2>로그인 / 회원가입</h2>
   <div style="display: flex; gap: 10px; margin-bottom: 10px;">
@@ -67,8 +67,12 @@
   <div>
     <button onclick="handleAuth('login')" style="padding: 8px 15px; cursor: pointer;">로그인</button>
     <button onclick="handleAuth('signup')" style="padding: 8px 15px; cursor: pointer;">회원가입</button>
-    <button onclick="handleLogout()" id="logout-btn" style="padding: 8px 15px; display: none; cursor: pointer;">로그아웃</button>
   </div>
+</div>
+
+<!-- 2. 로그인 상태 정보 (상단 우측) -->
+<div id="user-info-section" style="display: none; margin-bottom: 15px;">
+  <button onclick="handleLogout()" id="logout-btn" style="padding: 8px 15px; cursor: pointer;">로그아웃</button>
 </div>
 
 <div class="notice-banner">
@@ -249,14 +253,22 @@
     location.reload();
   }
 
-  // 페이지 로드 시 로그인 상태 체크
-  window.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('token');
-    const logoutBtn = document.getElementById('logout-btn');
-    if (token && logoutBtn) {
-      logoutBtn.style.display = 'inline-block';
-    }
-  });
+  // 페이지 로드 시 로그인 상태에 따라 화면 제어
+window.addEventListener('DOMContentLoaded', () => {
+  const token = localStorage.getItem('token');
+  const authSection = document.getElementById('auth-section');
+  const userInfoSection = document.getElementById('user-info-section');
+
+  if (token) {
+    // 토큰이 있으면: 로그인 창 숨기기
+    if (authSection) authSection.style.display = 'none';
+    if (userInfoSection) userInfoSection.style.display = 'block';
+  } else {
+    // 토큰이 없으면: 로그인 창 띄우기
+    if (authSection) authSection.style.display = 'block';
+    if (userInfoSection) userInfoSection.style.display = 'none';
+  }
+});
   
   // ---- contracts/pds-schema-v2.json 에 대응하는 스키마 정의 ----
   const PDS_SCHEMA_V2 = {
