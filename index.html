@@ -57,6 +57,20 @@
 
 <h1 class="page-title">플랜두씨 다이어리 — Plan-Do-See</h1>
 
+<!-- 로그인 / 회원가입 화면 -->
+<div id="auth-section" style="margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 8px;">
+  <h2>로그인 / 회원가입</h2>
+  <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+    <input type="email" id="auth-email" placeholder="이메일 입력" style="padding: 8px;" />
+    <input type="password" id="auth-password" placeholder="비밀번호 입력" style="padding: 8px;" />
+  </div>
+  <div>
+    <button onclick="handleAuth('login')" style="padding: 8px 15px; cursor: pointer;">로그인</button>
+    <button onclick="handleAuth('signup')" style="padding: 8px 15px; cursor: pointer;">회원가입</button>
+    <button onclick="handleLogout()" id="logout-btn" style="padding: 8px 15px; display: none; cursor: pointer;">로그아웃</button>
+  </div>
+</div>
+
 <div class="notice-banner">
     📢 지금은 로그인이 없어 링크를 아는 사람은 누구나 볼 수 있습니다. 남이 봐도 괜찮은 내용만 넣으세요. 데이터는 이 브라우저(localStorage)에만 저장되며, 아직 서버 데이터베이스와는 연결되지 않았습니다.
   </div>
@@ -192,6 +206,58 @@
 </div>
 
 <script>
+  // 회원가입 및 로그인 처리 함수
+  async function handleAuth(action) {
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-password').value;
+
+    if (!email || !password) {
+      alert('이메일과 비밀번호를 모두 입력해주세요.');
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/auth?action=${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        if (action === 'login') {
+          alert('로그인 성공!');
+          // 서버에서 받은 출입증(토큰) 저장
+          localStorage.setItem('token', data.token);
+          location.reload(); // 화면 새로고침
+        } else {
+          alert('회원가입이 완료되었습니다! 이제 로그인해 주세요.');
+        }
+      } else {
+        alert(data.error || '오류가 발생했습니다.');
+      }
+    } catch (err) {
+      alert('통신 오류가 발생했습니다.');
+    }
+  }
+
+  // 로그아웃 처리 함수
+  function handleLogout() {
+    localStorage.removeItem('token');
+    alert('로그아웃되었습니다.');
+    location.reload();
+  }
+
+  // 페이지 로드 시 로그인 상태 체크
+  window.addEventListener('DOMContentLoaded', () => {
+    const token = localStorage.getItem('token');
+    const logoutBtn = document.getElementById('logout-btn');
+    if (token && logoutBtn) {
+      logoutBtn.style.display = 'inline-block';
+    }
+  });
+  
   // ---- contracts/pds-schema-v2.json 에 대응하는 스키마 정의 ----
   const PDS_SCHEMA_V2 = {
     "$schema": "pds-schema-v2",
