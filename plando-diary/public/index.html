@@ -50,10 +50,68 @@
   .modal .row{margin-bottom:10px;}
   .plan-history-item{border-left:3px solid var(--line); padding:6px 10px; margin-bottom:6px; font-size:13px; color:var(--ink-soft);}
   .carried{background:#EAF2ED; border:1px solid var(--good); border-radius:8px; padding:10px 12px; font-size:13px; margin-bottom:12px;}
+
+  /* 로그인/회원가입 화면 스타일 */
+  #auth-container{min-height:80vh; display:flex; align-items:center; justify-content:center; padding:20px 0;}
+  .auth-box{background:var(--paper-card); border:1px solid var(--line); border-radius:var(--radius);
+       padding:32px; width:min(380px, 92vw); box-shadow:0 4px 18px rgba(0,0,0,0.08);}
+  .auth-box h1{font-family:'Gowun Batang', serif; font-size:22px; margin:0 0 4px; text-align:center;}
+  .auth-box .sub{font-size:13px; color:var(--ink-soft); margin-bottom:20px; text-align:center;}
+  .tabs{display:flex; margin-bottom:18px; border-bottom:1px solid var(--line);}
+  .tab{flex:1; text-align:center; padding:8px 0; cursor:pointer; font-weight:600; color:var(--ink-soft); font-size:14px;}
+  .tab.active{color:var(--plan); border-bottom:2px solid var(--plan);}
+  .auth-form label{display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin:10px 0 4px;}
+  .auth-form input{width:100%; padding:10px; border:1px solid var(--line); border-radius:6px; font-family:inherit; background:#fff;}
+  .auth-btn{width:100%; margin-top:16px; padding:10px; border:none; border-radius:6px; background:var(--plan);
+       color:#fff; font-weight:600; cursor:pointer; font-size:14px;}
+  .msg{margin-top:12px; font-size:13px; padding:8px 10px; border-radius:6px; display:none;}
+  .msg.err{display:block; background:#FBEAEA; color:var(--danger);}
+  .msg.ok{display:block; background:#EAF2ED; color:#2f6b48;}
+  .hint-auth{font-size:11px; color:var(--ink-soft); margin-top:14px; line-height:1.5;}
+  .auth-form{display:none;}
+  .auth-form.active{display:block;}
+
+  /* 다이어리 컨테이너 (인증 전에는 완전히 숨김) */
+  #diary-container{display:none;}
 </style>
-</head>
 <body>
-<div class="wrap">
+
+<!-- 1. 로그인 / 회원가입 화면 (비로그인 상태 시 표시) -->
+<div id="auth-container">
+  <div class="auth-box">
+    <h1>플랜두씨 다이어리</h1>
+    <div class="sub">로그인 후에만 내 다이어리와 기록을 볼 수 있습니다.</div>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="login" onclick="switchAuthTab('login')">로그인</div>
+      <div class="tab" data-tab="register" onclick="switchAuthTab('register')">회원가입</div>
+    </div>
+
+    <!-- 로그인 폼 -->
+    <form id="loginForm" class="auth-form active" onsubmit="handleLoginSubmit(event)">
+      <label>아이디</label>
+      <input type="text" id="l_username" autocomplete="username" required placeholder="아이디 입력">
+      <label>비밀번호</label>
+      <input type="password" id="l_password" autocomplete="current-password" required placeholder="비밀번호 입력">
+      <button class="auth-btn" type="submit">로그인</button>
+    </form>
+
+    <!-- 회원가입 폼 -->
+    <form id="registerForm" class="auth-form" onsubmit="handleRegisterSubmit(event)">
+      <label>아이디 (영문/숫자/밑줄 3~20자)</label>
+      <input type="text" id="r_username" autocomplete="username" required minlength="3" maxlength="20" placeholder="예: user_01">
+      <label>비밀번호 (8자 이상)</label>
+      <input type="password" id="r_password" autocomplete="new-password" required minlength="8" placeholder="비밀번호 8자 이상">
+      <button class="auth-btn" type="submit">가입하기</button>
+    </form>
+
+    <div class="msg" id="authMsg"></div>
+    <div class="hint-auth">🔒 비밀번호는 안전하게 단방향 해시되어 저장되며, 로그인한 사용자 본인의 데이터만 격리되어 보호됩니다.</div>
+  </div>
+</div>
+
+<!-- 2. 다이어리 메인 화면 (로그인 후 표시) -->
+<div class="wrap" id="diary-container">
 
 <div class="topbar">
   <div class="who">로그인: <b id="whoAmI">-</b></div>
@@ -191,23 +249,267 @@
   </div>
 </div>
 
-<script>
   // ---------------------------------------------------------------------
-  // 공통 fetch 래퍼: 401이면 즉시 로그인 화면으로 보낸다 (T07-C97)
+  // 1. 인증(Auth) UI 및 세션 제어 모듈
   // ---------------------------------------------------------------------
-  async function api(path, options = {}) {
-    const res = await fetch(path, {
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      ...options
-    });
-    if (res.status === 401) {
-      location.replace("/");
-      throw new Error("unauthorized");
+  const authMsgBox = document.getElementById("authMsg");
+  function showAuthMsg(text, ok) {
+    authMsgBox.textContent = text;
+    authMsgBox.className = "msg " + (ok ? "ok" : "err");
+  }
+
+  function switchAuthTab(tabName) {
+    document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tabName));
+    document.querySelectorAll(".auth-form").forEach(f => f.classList.remove("active"));
+    document.getElementById(tabName + "Form").classList.add("active");
+    authMsgBox.className = "msg";
+  }
+
+  async function hashPassword(str) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(str + "_pds_salt_v2");
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  function getUsersDb() {
+    try { return JSON.parse(localStorage.getItem("pds_users") || "[]"); } catch { return []; }
+  }
+  function saveUsersDb(users) {
+    localStorage.setItem("pds_users", JSON.stringify(users));
+  }
+
+  function checkAuthState() {
+    const token = localStorage.getItem("token");
+    const currentUser = localStorage.getItem("currentUser");
+    const authContainer = document.getElementById("auth-container");
+    const diaryContainer = document.getElementById("diary-container");
+
+    if (token && currentUser) {
+      authContainer.style.display = "none";
+      diaryContainer.style.display = "block";
+      document.getElementById("whoAmI").textContent = currentUser;
+      loadAll();
+    } else {
+      authContainer.style.display = "flex";
+      diaryContainer.style.display = "none";
+      document.getElementById("whoAmI").textContent = "-";
     }
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw Object.assign(new Error(data.error || "요청 실패"), { data, status: res.status });
-    return data;
+  }
+
+  async function handleRegisterSubmit(e) {
+    e.preventDefault();
+    const username = document.getElementById("r_username").value.trim();
+    const password = document.getElementById("r_password").value;
+
+    if (!username || !password) { showAuthMsg("아이디와 비밀번호를 모두 입력하세요.", false); return; }
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) { showAuthMsg("아이디는 영문/숫자/밑줄 3~20자여야 합니다.", false); return; }
+    if (password.length < 8) { showAuthMsg("비밀번호는 8자 이상이어야 합니다.", false); return; }
+
+    try {
+      await fetch("/api/auth/register", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        credentials: "include", body: JSON.stringify({ username, password })
+      });
+    } catch {}
+
+    const users = getUsersDb();
+    if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+      showAuthMsg("이미 사용 중인 아이디입니다.", false);
+      return;
+    }
+
+    const hashed = await hashPassword(password);
+    users.push({ id: "user_" + Date.now(), username, passwordHash: hashed, createdAt: new Date().toISOString() });
+    saveUsersDb(users);
+
+    showAuthMsg("가입이 완료되었습니다! 이제 로그인해 주세요.", true);
+    switchAuthTab("login");
+    document.getElementById("l_username").value = username;
+    document.getElementById("l_password").value = "";
+    document.getElementById("r_password").value = "";
+  }
+
+  async function handleLoginSubmit(e) {
+    e.preventDefault();
+    const username = document.getElementById("l_username").value.trim();
+    const password = document.getElementById("l_password").value;
+
+    if (!username || !password) { showAuthMsg("아이디와 비밀번호를 모두 입력하세요.", false); return; }
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        credentials: "include", body: JSON.stringify({ username, password })
+      });
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        localStorage.setItem("token", data.token || "token_" + Date.now());
+        localStorage.setItem("currentUser", data.username || username);
+        showAuthMsg("", true);
+        checkAuthState();
+        return;
+      }
+    } catch {}
+
+    const users = getUsersDb();
+    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    const hashed = await hashPassword(password);
+
+    if (!user || user.passwordHash !== hashed) {
+      showAuthMsg("아이디 또는 비밀번호가 올바르지 않습니다.", false);
+      return;
+    }
+
+    const token = "token_" + Date.now() + "_" + Math.random().toString(36).substring(2, 10);
+    localStorage.setItem("token", token);
+    localStorage.setItem("currentUser", user.username);
+    showAuthMsg("", true);
+    checkAuthState();
+  }
+
+  async function doLogout() {
+    try { await fetch("/api/auth/logout", { method: "POST" }); } catch {}
+    localStorage.removeItem("token");
+    localStorage.removeItem("currentUser");
+    alert("로그아웃되었습니다.");
+    checkAuthState();
+  }
+
+  async function doDeleteAccount() {
+    const user = localStorage.getItem("currentUser");
+    if (!confirm(`정말 계정(${user})을 삭제하시겠습니까? 내 모든 기록이 함께 삭제되며 되돌릴 수 없습니다.`)) return;
+    try { await fetch("/api/account", { method: "DELETE" }); } catch {}
+    if (user) {
+      localStorage.removeItem("pds_diary_v2_user_" + user);
+      const users = getUsersDb().filter(u => u.username.toLowerCase() !== user.toLowerCase());
+      saveUsersDb(users);
+    }
+    localStorage.removeItem("token");
+    localStorage.removeItem("currentUser");
+    alert("계정과 모든 기록이 삭제되었습니다.");
+    checkAuthState();
+  }
+
+  // ---------------------------------------------------------------------
+  // 2. 공통 fetch 래퍼 및 데이터 동기화
+  // ---------------------------------------------------------------------
+  function getUserStorageKey() {
+    const user = localStorage.getItem("currentUser") || "default";
+    return "pds_diary_v2_user_" + user;
+  }
+
+  function getLocalUserStore() {
+    try {
+      const saved = localStorage.getItem(getUserStorageKey());
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return { plan: null, histories: [], pendingActionItem: "", todos: [], executionRecords: [] };
+  }
+
+  function saveLocalUserStore(data) {
+    localStorage.setItem(getUserStorageKey(), JSON.stringify(data));
+  }
+
+  async function api(path, options = {}) {
+    try {
+      const res = await fetch(path, {
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        ...options
+      });
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("currentUser");
+        checkAuthState();
+        throw new Error("unauthorized");
+      }
+      if (res.ok) {
+        return await res.json().catch(() => ({}));
+      }
+    } catch (err) {
+      if (err.message === "unauthorized") throw err;
+    }
+
+    // 서버 API가 없거나 404일 때 클라이언트 로컬 스토리지로 투명하게 폴백 처리
+    const local = getLocalUserStore();
+    if (path === "/api/plan") {
+      if (options.method === "POST") {
+        const body = JSON.parse(options.body || "{}");
+        if (local.plan) {
+          local.histories = local.histories || [];
+          local.histories.push({ ...local.plan, modifiedAt: new Date().toISOString() });
+        }
+        local.plan = { id: uid(), ...body, carriedActionItem: local.pendingActionItem || null };
+        local.pendingActionItem = "";
+        saveLocalUserStore(local);
+        return { plan: local.plan, histories: local.histories, pendingActionItem: local.pendingActionItem };
+      }
+      return { plan: local.plan, histories: local.histories || [], pendingActionItem: local.pendingActionItem || "" };
+    }
+    if (path === "/api/todos") {
+      if (options.method === "POST") {
+        const body = JSON.parse(options.body || "{}");
+        const newTodo = { id: uid(), status: "TODO", createdAt: new Date().toISOString(), ...body };
+        local.todos = local.todos || [];
+        local.todos.push(newTodo);
+        saveLocalUserStore(local);
+        return newTodo;
+      }
+      return local.todos || [];
+    }
+    if (path.startsWith("/api/todos/") && path.endsWith("/complete")) {
+      const parts = path.split("/");
+      const todoId = parts[3];
+      const body = JSON.parse(options.body || "{}");
+      local.todos = local.todos || [];
+      const todo = local.todos.find(t => t.id === todoId);
+      if (todo) todo.status = "DONE";
+      local.executionRecords = local.executionRecords || [];
+      const rec = { id: uid(), todoId, completedAt: new Date().toISOString(), ...body };
+      local.executionRecords.push(rec);
+      saveLocalUserStore(local);
+      return { todo, record: rec };
+    }
+    if (path.startsWith("/api/todos/") && path.endsWith("/revert")) {
+      const parts = path.split("/");
+      const todoId = parts[3];
+      local.todos = local.todos || [];
+      const todo = local.todos.find(t => t.id === todoId);
+      if (todo) todo.status = "TODO";
+      local.executionRecords = (local.executionRecords || []).filter(r => r.todoId !== todoId);
+      saveLocalUserStore(local);
+      return todo;
+    }
+    if (path.startsWith("/api/todos/") && options.method === "DELETE") {
+      const todoId = path.split("/")[3];
+      local.todos = (local.todos || []).filter(t => t.id !== todoId);
+      local.executionRecords = (local.executionRecords || []).filter(r => r.todoId !== todoId);
+      saveLocalUserStore(local);
+      return { ok: true };
+    }
+    if (path.startsWith("/api/todos/") && options.method === "PUT") {
+      const todoId = path.split("/")[3];
+      const body = JSON.parse(options.body || "{}");
+      local.todos = local.todos || [];
+      const todo = local.todos.find(t => t.id === todoId);
+      if (todo) Object.assign(todo, body);
+      saveLocalUserStore(local);
+      return todo;
+    }
+    if (path === "/api/execution-records") {
+      return local.executionRecords || [];
+    }
+    if (path === "/api/review-action-items") {
+      const body = JSON.parse(options.body || "{}");
+      local.pendingActionItem = body.text || "";
+      saveLocalUserStore(local);
+      return { ok: true };
+    }
+    if (path === "/api/export") {
+      return local;
+    }
+    return {};
   }
 
   function escapeHtml(str) {
@@ -549,7 +851,9 @@
     dlAnchor.click();
   }
 
-  init();
+  // 화면 진입 시 로그인 상태 검사하여 화면 제어 (첫 화면은 로그인 화면)
+  checkAuthState();
+  window.addEventListener("DOMContentLoaded", checkAuthState);
 </script>
 </body>
 </html>

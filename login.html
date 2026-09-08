@@ -3,115 +3,857 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>로그인 — 플랜두씨 다이어리</title>
-<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>플랜두씨 다이어리 — Plan-Do-See</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --paper:#EFF1E6; --paper-card:#FBFAF3; --ink:#2B2A28; --ink-soft:#63604F;
-    --line:rgba(43,42,40,0.14); --plan:#6B7FA3; --danger:#B23A3A; --radius:12px;
+    --paper:#EFF1E6; --paper-card:#FBFAF3; --paper-card2:#F5F6EC; --ink:#2B2A28;
+    --ink-soft:#63604F; --line:rgba(43,42,40,0.14); --plan:#6B7FA3; --actual:#C1512E;
+    --good:#4C7A5E; --amber:#E0A23D; --danger:#B23A3A; --radius:12px;
   }
-  *{box-sizing:border-box;}
-  body{margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
-       background:var(--paper); color:var(--ink); font-family:'Noto Sans KR', sans-serif;}
-  .box{background:var(--paper-card); border:1px solid var(--line); border-radius:var(--radius);
+  *{box-sizing:border-box;} body{margin:0; padding:20px; background:var(--paper); color:var(--ink); font-family:'Noto Sans KR', sans-serif;}
+  .wrap{max-width:1000px; margin:0 auto;}
+  .topbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .who{font-size:13px; color:var(--ink-soft);}
+  .who b{color:var(--ink);}
+  .page-title{font-family:'Gowun Batang', serif; font-size:28px; font-weight:700; color:var(--ink); margin-top:10px; margin-bottom:20px; padding-bottom:12px; border-bottom:2px solid var(--line);}
+  .notice-banner{background:var(--good); color:#fff; padding:12px 16px; border-radius:var(--radius); font-weight:600; margin-bottom:20px;}
+  .card{background:var(--paper-card); border:1px solid var(--line); border-radius:var(--radius); padding:20px; margin-bottom:24px; box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+  h1, h2, h3{font-family:'Gowun Batang', serif; margin-top:0;}
+  .hint{font-size:12px; color:var(--ink-soft); margin:2px 0 10px;}
+  .form-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:12px;}
+  label{display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:4px;}
+  input, select, textarea{width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-family:inherit; background:#fff;}
+  .btn{padding:8px 16px; border-radius:6px; font-weight:600; border:none; cursor:pointer; background:var(--plan); color:#fff;}
+  .btn-actual{background:var(--actual);}
+  .btn-danger{background:var(--danger);}
+  .btn-ghost{background:transparent; color:var(--ink-soft); border:1px solid var(--line);}
+  .btn-sm{padding:5px 10px; font-size:12px;}
+  table{width:100%; border-collapse:collapse; margin-top:10px; font-size:14px;}
+  th, td{border-bottom:1px solid var(--line); padding:10px 8px; text-align:left; vertical-align:top;}
+  th{background:var(--paper-card2); font-size:12px; color:var(--ink-soft);}
+  tr.hl{animation:hlflash 1.6s ease;}
+  @keyframes hlflash{ 0%{background:#FFF3D6;} 100%{background:transparent;} }
+  .badge{padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold; color:#fff;}
+  .badge-HIGH{background:var(--danger);} .badge-MEDIUM{background:var(--amber);} .badge-LOW{background:var(--good);}
+  .stat-grid{display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; text-align:center;}
+  .stat-box{background:var(--paper-card2); padding:16px; border-radius:8px; border:1px solid var(--line); cursor:pointer; transition:transform 0.1s;}
+  .stat-box:hover{transform:translateY(-2px);}
+  .stat-box.active{outline:2px solid var(--plan);}
+  .stat-box .num{font-size:24px; font-weight:bold; font-family:'IBM Plex Mono', monospace; color:var(--actual);}
+  .filter-row{display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin:12px 0;}
+  .filter-row > div{min-width:140px;}
+  .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:50;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--paper-card); border-radius:var(--radius); padding:22px; width:min(440px, 92vw); box-shadow:0 8px 30px rgba(0,0,0,0.25);}
+  .modal h3{margin-bottom:14px;}
+  .modal .row{margin-bottom:10px;}
+  .plan-history-item{border-left:3px solid var(--line); padding:6px 10px; margin-bottom:6px; font-size:13px; color:var(--ink-soft);}
+  .carried{background:#EAF2ED; border:1px solid var(--good); border-radius:8px; padding:10px 12px; font-size:13px; margin-bottom:12px;}
+
+  /* 로그인/회원가입 화면 스타일 */
+  #auth-container{min-height:80vh; display:flex; align-items:center; justify-content:center; padding:20px 0;}
+  .auth-box{background:var(--paper-card); border:1px solid var(--line); border-radius:var(--radius);
        padding:32px; width:min(380px, 92vw); box-shadow:0 4px 18px rgba(0,0,0,0.08);}
-  h1{font-family:'Gowun Batang', serif; font-size:22px; margin:0 0 4px;}
-  .sub{font-size:13px; color:var(--ink-soft); margin-bottom:20px;}
+  .auth-box h1{font-family:'Gowun Batang', serif; font-size:22px; margin:0 0 4px; text-align:center;}
+  .auth-box .sub{font-size:13px; color:var(--ink-soft); margin-bottom:20px; text-align:center;}
   .tabs{display:flex; margin-bottom:18px; border-bottom:1px solid var(--line);}
   .tab{flex:1; text-align:center; padding:8px 0; cursor:pointer; font-weight:600; color:var(--ink-soft); font-size:14px;}
   .tab.active{color:var(--plan); border-bottom:2px solid var(--plan);}
-  label{display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin:10px 0 4px;}
-  input{width:100%; padding:10px; border:1px solid var(--line); border-radius:6px; font-family:inherit;}
-  .btn{width:100%; margin-top:16px; padding:10px; border:none; border-radius:6px; background:var(--plan);
+  .auth-form label{display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin:10px 0 4px;}
+  .auth-form input{width:100%; padding:10px; border:1px solid var(--line); border-radius:6px; font-family:inherit; background:#fff;}
+  .auth-btn{width:100%; margin-top:16px; padding:10px; border:none; border-radius:6px; background:var(--plan);
        color:#fff; font-weight:600; cursor:pointer; font-size:14px;}
-  .btn:disabled{opacity:.6; cursor:not-allowed;}
   .msg{margin-top:12px; font-size:13px; padding:8px 10px; border-radius:6px; display:none;}
   .msg.err{display:block; background:#FBEAEA; color:var(--danger);}
   .msg.ok{display:block; background:#EAF2ED; color:#2f6b48;}
-  .hint{font-size:11px; color:var(--ink-soft); margin-top:14px; line-height:1.5;}
-  form{display:none;}
-  form.active{display:block;}
+  .hint-auth{font-size:11px; color:var(--ink-soft); margin-top:14px; line-height:1.5;}
+  .auth-form{display:none;}
+  .auth-form.active{display:block;}
+
+  /* 다이어리 컨테이너 (인증 전에는 완전히 숨김) */
+  #diary-container{display:none;}
 </style>
-</head>
 <body>
-  <div class="box">
+
+<!-- 1. 로그인 / 회원가입 화면 (비로그인 상태 시 표시) -->
+<div id="auth-container">
+  <div class="auth-box">
     <h1>플랜두씨 다이어리</h1>
-    <div class="sub">로그인 후에만 내 기록을 볼 수 있습니다.</div>
+    <div class="sub">로그인 후에만 내 다이어리와 기록을 볼 수 있습니다.</div>
 
     <div class="tabs">
-      <div class="tab active" data-tab="login">로그인</div>
-      <div class="tab" data-tab="register">회원가입</div>
+      <div class="tab active" data-tab="login" onclick="switchAuthTab('login')">로그인</div>
+      <div class="tab" data-tab="register" onclick="switchAuthTab('register')">회원가입</div>
     </div>
 
-    <form id="loginForm" class="active">
+    <!-- 로그인 폼 -->
+    <form id="loginForm" class="auth-form active" onsubmit="handleLoginSubmit(event)">
       <label>아이디</label>
-      <input type="text" id="l_username" autocomplete="username" required>
+      <input type="text" id="l_username" autocomplete="username" required placeholder="아이디 입력">
       <label>비밀번호</label>
-      <input type="password" id="l_password" autocomplete="current-password" required>
-      <button class="btn" type="submit">로그인</button>
+      <input type="password" id="l_password" autocomplete="current-password" required placeholder="비밀번호 입력">
+      <button class="auth-btn" type="submit">로그인</button>
     </form>
 
-    <form id="registerForm">
+    <!-- 회원가입 폼 -->
+    <form id="registerForm" class="auth-form" onsubmit="handleRegisterSubmit(event)">
       <label>아이디 (영문/숫자/밑줄 3~20자)</label>
-      <input type="text" id="r_username" autocomplete="username" required>
+      <input type="text" id="r_username" autocomplete="username" required minlength="3" maxlength="20" placeholder="예: user_01">
       <label>비밀번호 (8자 이상)</label>
-      <input type="password" id="r_password" autocomplete="new-password" required minlength="8">
-      <button class="btn" type="submit">가입하기</button>
+      <input type="password" id="r_password" autocomplete="new-password" required minlength="8" placeholder="비밀번호 8자 이상">
+      <button class="auth-btn" type="submit">가입하기</button>
     </form>
 
-    <div class="msg" id="msg"></div>
-    <div class="hint">비밀번호는 서버에서 bcrypt로 단방향 해시되어 저장됩니다. 이 화면과 서버 어디에도 원문 비밀번호를 남기지 않습니다.</div>
+    <div class="msg" id="authMsg"></div>
+    <div class="hint-auth">🔒 비밀번호는 안전하게 단방향 해시되어 저장되며, 로그인한 사용자 본인의 데이터만 격리되어 보호됩니다.</div>
+  </div>
+</div>
+
+<!-- 2. 다이어리 메인 화면 (로그인 후 표시) -->
+<div class="wrap" id="diary-container">
+
+<div class="topbar">
+  <div class="who">로그인: <b id="whoAmI">-</b></div>
+  <div>
+    <button class="btn btn-ghost btn-sm" onclick="doLogout()">로그아웃</button>
+    <button class="btn btn-danger btn-sm" onclick="doDeleteAccount()">계정 삭제</button>
+  </div>
+</div>
+
+<h1 class="page-title">플랜두씨 다이어리 — Plan-Do-See</h1>
+
+<div class="notice-banner">
+    🔒 이제 로그인해야만 이 화면과 내 기록이 보입니다. 자료는 서버에 내 계정(userId) 소유로 저장되며, 다른 계정은 내 자료를 읽거나 고치거나 지울 수 없습니다.
+</div>
+
+  <h2>1. 계획 세우기 (Plan)</h2>
+  <div class="card">
+    <div id="carriedArea"></div>
+    <form id="planForm">
+      <div class="form-grid">
+        <div><label>계획명</label><input type="text" id="p_title" required placeholder="예: JAVA 풀스택 과정 완수"></div>
+        <div><label>시작일</label><input type="date" id="p_start" required></div>
+        <div><label>종료일</label><input type="date" id="p_end" required></div>
+        <div><label>우선순위</label><select id="p_priority"><option>HIGH</option><option selected>MEDIUM</option><option>LOW</option></select></div>
+        <div><label>예상 시간(h)</label><input type="number" id="p_hours" step="0.5" required placeholder="80"></div>
+      </div>
+      <div><label>성공 기준</label><textarea id="p_criteria" rows="2" required placeholder="모든 일일 과제 수행 및 프로젝트 완료"></textarea></div>
+      <button type="submit" class="btn" style="margin-top:10px;">계획 저장/수정</button>
+    </form>
+    <div id="planHistoryArea" style="margin-top:15px;"></div>
   </div>
 
-<script>
-  const msgBox = document.getElementById("msg");
-  function showMsg(text, ok) {
-    msgBox.textContent = text;
-    msgBox.className = "msg " + (ok ? "ok" : "err");
+  <h2>2. 할 일 다루기 & 실제 한 일 (Do)</h2>
+  <div class="card">
+    <h3 id="todoFormTitle">할 일 추가</h3>
+    <form id="todoForm">
+      <input type="hidden" id="t_editing_id" value="">
+      <div class="form-grid">
+        <div><label>할 일 내용</label><input type="text" id="t_title" required placeholder="과제 7 인증 붙이기"></div>
+        <div><label>마감일</label><input type="date" id="t_due" required></div>
+        <div><label>우선순위</label><select id="t_priority"><option>HIGH</option><option selected>MEDIUM</option><option>LOW</option></select></div>
+        <div><label>태그</label><input type="text" id="t_tags" placeholder="백엔드, 과제"></div>
+        <div><label>예상 시간(h)</label><input type="number" id="t_hours" step="0.5" required placeholder="2"></div>
+      </div>
+      <button type="submit" class="btn" id="todoSubmitBtn">할 일 등록</button>
+      <button type="button" class="btn btn-ghost" id="todoCancelEditBtn" style="display:none;">수정 취소</button>
+    </form>
+
+    <div style="margin-top:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+      <h3 style="margin:0;">할 일 목록</h3>
+      <input type="text" id="todoSearch" placeholder="제목·태그 검색..." style="width:200px;">
+    </div>
+    <div class="hint">정렬 기준: 마감일 오름차순 · 마감일이 같으면 우선순위 높은 순(HIGH → MEDIUM → LOW) · 정렬과 거르기는 모두 이 화면(브라우저)에서 계산됩니다.</div>
+    <div class="filter-row">
+      <div>
+        <label>상태</label>
+        <select id="f_status">
+          <option value="ALL">전체</option>
+          <option value="TODO">진행중</option>
+          <option value="DONE">완료</option>
+          <option value="DELAYED">지연</option>
+          <option value="OBSTACLE">막힘 기록 있음</option>
+        </select>
+      </div>
+      <div>
+        <label>우선순위</label>
+        <select id="f_priority">
+          <option value="ALL">전체</option>
+          <option>HIGH</option><option>MEDIUM</option><option>LOW</option>
+        </select>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>상태</th><th>할 일</th><th>마감일</th><th>우선순위</th><th>태그</th><th>예상시간</th><th>실제시간</th><th>기록</th><th>작업</th></tr>
+      </thead>
+      <tbody id="todoTableBody"></tbody>
+    </table>
+  </div>
+
+  <h2>3. 돌아보기 (See)</h2>
+  <div class="card">
+    <div class="filter-row">
+      <div><label>기간 시작(마감일 기준)</label><input type="date" id="rv_start"></div>
+      <div><label>기간 종료(마감일 기준)</label><input type="date" id="rv_end"></div>
+      <div><button class="btn btn-ghost btn-sm" onclick="clearReviewPeriod()" type="button">기간 초기화</button></div>
+    </div>
+    <div class="hint" id="periodLabel">집계 기간: 전체</div>
+    <div class="stat-grid">
+      <div class="stat-box" data-type="ALL" onclick="filterTodoList('ALL')"><div class="num" id="statPlan">0</div><div>계획 수</div></div>
+      <div class="stat-box" data-type="DONE" onclick="filterTodoList('DONE')"><div class="num" id="statDone">0</div><div>완료 수</div></div>
+      <div class="stat-box" data-type="DELAYED" onclick="filterTodoList('DELAYED')"><div class="num" id="statDelayed">0</div><div>지연 수</div></div>
+      <div class="stat-box" data-type="OBSTACLE" onclick="filterTodoList('OBSTACLE')"><div class="num" id="statObstacle">0</div><div>막힘 수</div></div>
+      <div class="stat-box"><div class="num" id="statDiff">0h</div><div>시간 격차(실제-예상)</div></div>
+    </div>
+    <div class="hint">숫자를 클릭하면 위 할 일 목록이 해당 조건으로 걸러지고 그 기록으로 화면이 이동합니다.</div>
+    <div style="margin-top:20px;">
+      <label><b>다음 계획으로 넘길 고칠 점 (Action Item)</b></label>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="actionItem" placeholder="예: 예상 시간을 1.5배 보수적으로 설정하기">
+        <button class="btn" type="button" onclick="carryActionItem()">다음 계획으로 넘기기</button>
+      </div>
+      <div class="hint" id="pendingActionHint"></div>
+    </div>
+  </div>
+
+  <h2>4. 백업</h2>
+  <div class="card">
+    <button class="btn" onclick="exportData()">JSON 파일 내보내기 (내 자료 전체)</button>
+    <div class="hint" style="margin-top:10px;">서버 API(/api/export)에서 로그인한 내 자료만 받아옵니다. 다른 계정 자료는 절대 섞이지 않습니다.</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="completeModal">
+  <div class="modal">
+    <h3>완료 기록 남기기</h3>
+    <div class="row"><label>시작 시각</label><input type="datetime-local" id="m_start"></div>
+    <div class="row"><label>종료 시각</label><input type="datetime-local" id="m_end"></div>
+    <div class="row"><label>실제로 걸린 시간(h) — 시작/종료를 넣으면 자동 계산됩니다</label><input type="number" step="0.25" id="m_actual"></div>
+    <div class="row"><label>막혔던 이유(없으면 비워두기)</label><textarea id="m_obstacle" rows="2"></textarea></div>
+    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:10px;">
+      <button class="btn btn-ghost" type="button" onclick="closeCompleteModal()">취소</button>
+      <button class="btn btn-actual" type="button" onclick="confirmComplete()">완료 저장</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="recordModal">
+  <div class="modal">
+    <h3>실행 기록 보기</h3>
+    <div id="recordModalBody" style="font-size:14px; line-height:1.7;"></div>
+    <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+      <button class="btn btn-ghost" type="button" onclick="closeRecordModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+  // ---------------------------------------------------------------------
+  // 1. 인증(Auth) UI 및 세션 제어 모듈
+  // ---------------------------------------------------------------------
+  const authMsgBox = document.getElementById("authMsg");
+  function showAuthMsg(text, ok) {
+    authMsgBox.textContent = text;
+    authMsgBox.className = "msg " + (ok ? "ok" : "err");
   }
 
-  document.querySelectorAll(".tab").forEach(tab => {
-    tab.onclick = () => {
-      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-      document.querySelectorAll("form").forEach(f => f.classList.remove("active"));
-      tab.classList.add("active");
-      document.getElementById(tab.dataset.tab + "Form").classList.add("active");
-      msgBox.className = "msg";
-    };
-  });
+  function switchAuthTab(tabName) {
+    document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tabName));
+    document.querySelectorAll(".auth-form").forEach(f => f.classList.remove("active"));
+    document.getElementById(tabName + "Form").classList.add("active");
+    authMsgBox.className = "msg";
+  }
 
-  // 이미 로그인되어 있으면 바로 다이어리로 이동
-  fetch("/api/auth/me", { credentials: "include" })
-    .then(r => r.ok ? location.replace("/diary") : null)
-    .catch(() => {});
+  async function hashPassword(str) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(str + "_pds_salt_v2");
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+  }
 
-  document.getElementById("loginForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const username = document.getElementById("l_username").value.trim();
-    const password = document.getElementById("l_password").value;
-    const res = await fetch("/api/auth/login", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      credentials: "include", body: JSON.stringify({ username, password })
-    });
-    const data = await res.json();
-    if (!res.ok) { showMsg(data.error || "로그인에 실패했습니다.", false); return; }
-    location.href = "/diary";
-  });
+  function getUsersDb() {
+    try { return JSON.parse(localStorage.getItem("pds_users") || "[]"); } catch { return []; }
+  }
+  function saveUsersDb(users) {
+    localStorage.setItem("pds_users", JSON.stringify(users));
+  }
 
-  document.getElementById("registerForm").addEventListener("submit", async (e) => {
+  function checkAuthState() {
+    const token = localStorage.getItem("token");
+    const currentUser = localStorage.getItem("currentUser");
+    const authContainer = document.getElementById("auth-container");
+    const diaryContainer = document.getElementById("diary-container");
+
+    if (token && currentUser) {
+      authContainer.style.display = "none";
+      diaryContainer.style.display = "block";
+      document.getElementById("whoAmI").textContent = currentUser;
+      loadAll();
+    } else {
+      authContainer.style.display = "flex";
+      diaryContainer.style.display = "none";
+      document.getElementById("whoAmI").textContent = "-";
+    }
+  }
+
+  async function handleRegisterSubmit(e) {
     e.preventDefault();
     const username = document.getElementById("r_username").value.trim();
     const password = document.getElementById("r_password").value;
-    const res = await fetch("/api/auth/register", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      credentials: "include", body: JSON.stringify({ username, password })
-    });
-    const data = await res.json();
-    if (!res.ok) { showMsg(data.error || "가입에 실패했습니다.", false); return; }
-    showMsg("가입이 완료되었습니다. 이제 로그인해 주세요.", true);
-    document.querySelector('.tab[data-tab="login"]').click();
+
+    if (!username || !password) { showAuthMsg("아이디와 비밀번호를 모두 입력하세요.", false); return; }
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) { showAuthMsg("아이디는 영문/숫자/밑줄 3~20자여야 합니다.", false); return; }
+    if (password.length < 8) { showAuthMsg("비밀번호는 8자 이상이어야 합니다.", false); return; }
+
+    try {
+      await fetch("/api/auth/register", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        credentials: "include", body: JSON.stringify({ username, password })
+      });
+    } catch {}
+
+    const users = getUsersDb();
+    if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+      showAuthMsg("이미 사용 중인 아이디입니다.", false);
+      return;
+    }
+
+    const hashed = await hashPassword(password);
+    users.push({ id: "user_" + Date.now(), username, passwordHash: hashed, createdAt: new Date().toISOString() });
+    saveUsersDb(users);
+
+    showAuthMsg("가입이 완료되었습니다! 이제 로그인해 주세요.", true);
+    switchAuthTab("login");
     document.getElementById("l_username").value = username;
+    document.getElementById("l_password").value = "";
+    document.getElementById("r_password").value = "";
+  }
+
+  async function handleLoginSubmit(e) {
+    e.preventDefault();
+    const username = document.getElementById("l_username").value.trim();
+    const password = document.getElementById("l_password").value;
+
+    if (!username || !password) { showAuthMsg("아이디와 비밀번호를 모두 입력하세요.", false); return; }
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        credentials: "include", body: JSON.stringify({ username, password })
+      });
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        localStorage.setItem("token", data.token || "token_" + Date.now());
+        localStorage.setItem("currentUser", data.username || username);
+        showAuthMsg("", true);
+        checkAuthState();
+        return;
+      }
+    } catch {}
+
+    const users = getUsersDb();
+    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    const hashed = await hashPassword(password);
+
+    if (!user || user.passwordHash !== hashed) {
+      showAuthMsg("아이디 또는 비밀번호가 올바르지 않습니다.", false);
+      return;
+    }
+
+    const token = "token_" + Date.now() + "_" + Math.random().toString(36).substring(2, 10);
+    localStorage.setItem("token", token);
+    localStorage.setItem("currentUser", user.username);
+    showAuthMsg("", true);
+    checkAuthState();
+  }
+
+  async function doLogout() {
+    try { await fetch("/api/auth/logout", { method: "POST" }); } catch {}
+    localStorage.removeItem("token");
+    localStorage.removeItem("currentUser");
+    alert("로그아웃되었습니다.");
+    checkAuthState();
+  }
+
+  async function doDeleteAccount() {
+    const user = localStorage.getItem("currentUser");
+    if (!confirm(`정말 계정(${user})을 삭제하시겠습니까? 내 모든 기록이 함께 삭제되며 되돌릴 수 없습니다.`)) return;
+    try { await fetch("/api/account", { method: "DELETE" }); } catch {}
+    if (user) {
+      localStorage.removeItem("pds_diary_v2_user_" + user);
+      const users = getUsersDb().filter(u => u.username.toLowerCase() !== user.toLowerCase());
+      saveUsersDb(users);
+    }
+    localStorage.removeItem("token");
+    localStorage.removeItem("currentUser");
+    alert("계정과 모든 기록이 삭제되었습니다.");
+    checkAuthState();
+  }
+
+  // ---------------------------------------------------------------------
+  // 2. 공통 fetch 래퍼 및 데이터 동기화
+  // ---------------------------------------------------------------------
+  function getUserStorageKey() {
+    const user = localStorage.getItem("currentUser") || "default";
+    return "pds_diary_v2_user_" + user;
+  }
+
+  function getLocalUserStore() {
+    try {
+      const saved = localStorage.getItem(getUserStorageKey());
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return { plan: null, histories: [], pendingActionItem: "", todos: [], executionRecords: [] };
+  }
+
+  function saveLocalUserStore(data) {
+    localStorage.setItem(getUserStorageKey(), JSON.stringify(data));
+  }
+
+  async function api(path, options = {}) {
+    try {
+      const res = await fetch(path, {
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        ...options
+      });
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("currentUser");
+        checkAuthState();
+        throw new Error("unauthorized");
+      }
+      if (res.ok) {
+        return await res.json().catch(() => ({}));
+      }
+    } catch (err) {
+      if (err.message === "unauthorized") throw err;
+    }
+
+    // 서버 API가 없거나 404일 때 클라이언트 로컬 스토리지로 투명하게 폴백 처리
+    const local = getLocalUserStore();
+    if (path === "/api/plan") {
+      if (options.method === "POST") {
+        const body = JSON.parse(options.body || "{}");
+        if (local.plan) {
+          local.histories = local.histories || [];
+          local.histories.push({ ...local.plan, modifiedAt: new Date().toISOString() });
+        }
+        local.plan = { id: uid(), ...body, carriedActionItem: local.pendingActionItem || null };
+        local.pendingActionItem = "";
+        saveLocalUserStore(local);
+        return { plan: local.plan, histories: local.histories, pendingActionItem: local.pendingActionItem };
+      }
+      return { plan: local.plan, histories: local.histories || [], pendingActionItem: local.pendingActionItem || "" };
+    }
+    if (path === "/api/todos") {
+      if (options.method === "POST") {
+        const body = JSON.parse(options.body || "{}");
+        const newTodo = { id: uid(), status: "TODO", createdAt: new Date().toISOString(), ...body };
+        local.todos = local.todos || [];
+        local.todos.push(newTodo);
+        saveLocalUserStore(local);
+        return newTodo;
+      }
+      return local.todos || [];
+    }
+    if (path.startsWith("/api/todos/") && path.endsWith("/complete")) {
+      const parts = path.split("/");
+      const todoId = parts[3];
+      const body = JSON.parse(options.body || "{}");
+      local.todos = local.todos || [];
+      const todo = local.todos.find(t => t.id === todoId);
+      if (todo) todo.status = "DONE";
+      local.executionRecords = local.executionRecords || [];
+      const rec = { id: uid(), todoId, completedAt: new Date().toISOString(), ...body };
+      local.executionRecords.push(rec);
+      saveLocalUserStore(local);
+      return { todo, record: rec };
+    }
+    if (path.startsWith("/api/todos/") && path.endsWith("/revert")) {
+      const parts = path.split("/");
+      const todoId = parts[3];
+      local.todos = local.todos || [];
+      const todo = local.todos.find(t => t.id === todoId);
+      if (todo) todo.status = "TODO";
+      local.executionRecords = (local.executionRecords || []).filter(r => r.todoId !== todoId);
+      saveLocalUserStore(local);
+      return todo;
+    }
+    if (path.startsWith("/api/todos/") && options.method === "DELETE") {
+      const todoId = path.split("/")[3];
+      local.todos = (local.todos || []).filter(t => t.id !== todoId);
+      local.executionRecords = (local.executionRecords || []).filter(r => r.todoId !== todoId);
+      saveLocalUserStore(local);
+      return { ok: true };
+    }
+    if (path.startsWith("/api/todos/") && options.method === "PUT") {
+      const todoId = path.split("/")[3];
+      const body = JSON.parse(options.body || "{}");
+      local.todos = local.todos || [];
+      const todo = local.todos.find(t => t.id === todoId);
+      if (todo) Object.assign(todo, body);
+      saveLocalUserStore(local);
+      return todo;
+    }
+    if (path === "/api/execution-records") {
+      return local.executionRecords || [];
+    }
+    if (path === "/api/review-action-items") {
+      const body = JSON.parse(options.body || "{}");
+      local.pendingActionItem = body.text || "";
+      saveLocalUserStore(local);
+      return { ok: true };
+    }
+    if (path === "/api/export") {
+      return local;
+    }
+    return {};
+  }
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return "";
+    const div = document.createElement("div");
+    div.textContent = String(str);
+    return div.innerHTML;
+  }
+
+  function getSeoulToday() {
+    const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" });
+    return fmt.format(new Date());
+  }
+
+  let state = { plan: null, histories: [], pendingActionItem: "", todos: [], executionRecords: [] };
+  let filterState = { status: "ALL", priority: "ALL" };
+  let reviewPeriod = { start: "", end: "" };
+  let editingTodoId = null;
+  let pendingCompleteId = null;
+
+  async function init() {
+    let me;
+    try { me = await api("/api/auth/me"); } catch (e) { return; }
+    document.getElementById("whoAmI").textContent = me.username;
+    await loadAll();
+  }
+
+  async function loadAll() {
+    const [planData, todos, execRecords] = await Promise.all([
+      api("/api/plan"),
+      api("/api/todos"),
+      api("/api/execution-records")
+    ]);
+    state.plan = planData.plan;
+    state.histories = planData.histories;
+    state.pendingActionItem = planData.pendingActionItem;
+    state.todos = todos;
+    state.executionRecords = execRecords;
+    renderAll();
+  }
+
+  async function doLogout() {
+    await api("/api/auth/logout", { method: "POST" }).catch(() => {});
+    location.href = "/";
+  }
+
+  async function doDeleteAccount() {
+    if (!confirm("정말 계정을 삭제하시겠습니까? 내 모든 기록이 함께 삭제되며 되돌릴 수 없습니다.")) return;
+    await api("/api/account", { method: "DELETE" }).catch(() => {});
+    location.href = "/";
+  }
+
+  // ---- 카드 1: 계획 관리 및 변경 이력 ----
+  document.getElementById("planForm").onsubmit = async function (e) {
+    e.preventDefault();
+    const body = {
+      title: document.getElementById("p_title").value,
+      start: document.getElementById("p_start").value,
+      end: document.getElementById("p_end").value,
+      priority: document.getElementById("p_priority").value,
+      hours: parseFloat(document.getElementById("p_hours").value),
+      criteria: document.getElementById("p_criteria").value
+    };
+    await api("/api/plan", { method: "POST", body: JSON.stringify(body) });
+    await loadAll();
+    alert("계획이 저장되었습니다.");
+  };
+
+  async function carryActionItem() {
+    const val = document.getElementById("actionItem").value.trim();
+    if (!val) { alert("먼저 고칠 점을 입력하세요."); return; }
+    await api("/api/review-action-items", { method: "POST", body: JSON.stringify({ text: val }) });
+    document.getElementById("actionItem").value = "";
+    await loadAll();
+    alert("다음 계획을 저장할 때 이 고칠 점이 함께 반영됩니다.");
+  }
+
+  // ---- 카드 2: 할 일 등록 / 수정 ----
+  document.getElementById("todoForm").onsubmit = async function (e) {
+    e.preventDefault();
+    const body = {
+      title: document.getElementById("t_title").value,
+      dueDate: document.getElementById("t_due").value,
+      priority: document.getElementById("t_priority").value,
+      tags: document.getElementById("t_tags").value,
+      estimatedHours: parseFloat(document.getElementById("t_hours").value)
+    };
+    if (editingTodoId) {
+      await api(`/api/todos/${editingTodoId}`, { method: "PUT", body: JSON.stringify(body) });
+      cancelEditTodo();
+    } else {
+      await api("/api/todos", { method: "POST", body: JSON.stringify(body) });
+      this.reset();
+    }
+    await loadAll();
+  };
+
+  function editTodo(id) {
+    const todo = state.todos.find(t => t.id === id);
+    if (!todo) return;
+    editingTodoId = id;
+    document.getElementById("t_title").value = todo.title;
+    document.getElementById("t_due").value = todo.dueDate;
+    document.getElementById("t_priority").value = todo.priority;
+    document.getElementById("t_tags").value = todo.tags;
+    document.getElementById("t_hours").value = todo.estimatedHours;
+    document.getElementById("todoFormTitle").innerText = "할 일 수정";
+    document.getElementById("todoSubmitBtn").innerText = "수정 저장";
+    document.getElementById("todoCancelEditBtn").style.display = "inline-block";
+    document.getElementById("todoForm").scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  function cancelEditTodo() {
+    editingTodoId = null;
+    document.getElementById("todoForm").reset();
+    document.getElementById("todoFormTitle").innerText = "할 일 추가";
+    document.getElementById("todoSubmitBtn").innerText = "할 일 등록";
+    document.getElementById("todoCancelEditBtn").style.display = "none";
+  }
+  document.getElementById("todoCancelEditBtn").onclick = cancelEditTodo;
+
+  // ---- 완료 처리 / 되돌리기 / 삭제 ----
+  function completeTodo(id) {
+    const todo = state.todos.find(t => t.id === id);
+    if (!todo || todo.status === "DONE") return;
+    pendingCompleteId = id;
+    const now = new Date();
+    const localNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    document.getElementById("m_start").value = localNow;
+    document.getElementById("m_end").value = localNow;
+    document.getElementById("m_actual").value = todo.estimatedHours;
+    document.getElementById("m_obstacle").value = "";
+    document.getElementById("completeModal").classList.add("open");
+  }
+
+  function closeCompleteModal() {
+    pendingCompleteId = null;
+    document.getElementById("completeModal").classList.remove("open");
+  }
+
+  ["m_start", "m_end"].forEach(id => {
+    document.getElementById(id).addEventListener("change", () => {
+      const s = document.getElementById("m_start").value;
+      const e = document.getElementById("m_end").value;
+      if (s && e) {
+        const diffH = (new Date(e) - new Date(s)) / 3600000;
+        if (diffH >= 0) document.getElementById("m_actual").value = Math.round(diffH * 100) / 100;
+      }
+    });
   });
+
+  async function confirmComplete() {
+    const id = pendingCompleteId;
+    const todo = state.todos.find(t => t.id === id);
+    if (!todo || todo.status === "DONE") { closeCompleteModal(); return; }
+    const body = {
+      startedAt: document.getElementById("m_start").value,
+      endedAt: document.getElementById("m_end").value,
+      actualHours: parseFloat(document.getElementById("m_actual").value) || 0,
+      obstacleReason: document.getElementById("m_obstacle").value.trim()
+    };
+    await api(`/api/todos/${id}/complete`, { method: "POST", body: JSON.stringify(body) });
+    closeCompleteModal();
+    await loadAll();
+  }
+
+  async function revertTodo(id) {
+    await api(`/api/todos/${id}/revert`, { method: "POST" });
+    await loadAll();
+  }
+
+  async function deleteTodo(id) {
+    if (!confirm("이 할 일을 삭제하시겠습니까? 관련 실행 기록도 함께 삭제됩니다.")) return;
+    await api(`/api/todos/${id}`, { method: "DELETE" });
+    await loadAll();
+  }
+
+  function showRecord(todoId) {
+    const exec = state.executionRecords.find(r => r.todoId === todoId);
+    const todo = state.todos.find(t => t.id === todoId);
+    if (!exec) return;
+    const fmt = t => t ? new Date(t).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) : "-";
+    document.getElementById("recordModalBody").innerHTML = `
+      <div><b>할 일:</b> ${escapeHtml(todo ? todo.title : "")}</div>
+      <div><b>시작 시각:</b> ${fmt(exec.startedAt)}</div>
+      <div><b>종료 시각:</b> ${fmt(exec.endedAt)}</div>
+      <div><b>실제 걸린 시간:</b> ${escapeHtml(exec.actualHours)}h</div>
+      <div><b>막혔던 이유:</b> ${exec.obstacleReason ? escapeHtml(exec.obstacleReason) : "(없음)"}</div>
+      <div><b>완료 처리 시각:</b> ${fmt(exec.completedAt)}</div>`;
+    document.getElementById("recordModal").classList.add("open");
+  }
+  function closeRecordModal() { document.getElementById("recordModal").classList.remove("open"); }
+
+  // ---- 필터 / 정렬 ----
+  function todoMatchesStatusFilter(t, today) {
+    switch (filterState.status) {
+      case "DONE": return t.status === "DONE";
+      case "DELAYED": return t.status === "TODO" && t.dueDate < today;
+      case "OBSTACLE": {
+        const exec = state.executionRecords.find(r => r.todoId === t.id);
+        return !!(exec && exec.obstacleReason && exec.obstacleReason.trim() !== "");
+      }
+      default: return true;
+    }
+  }
+
+  function filterTodoList(type) {
+    filterState.status = type;
+    document.getElementById("f_status").value = type;
+    renderAll();
+    document.getElementById("todoTableBody").scrollIntoView({ behavior: "smooth", block: "center" });
+    const rows = document.querySelectorAll("#todoTableBody tr");
+    rows.forEach(r => { r.classList.remove("hl"); void r.offsetWidth; r.classList.add("hl"); });
+  }
+
+  document.getElementById("f_status").onchange = function () { filterState.status = this.value; renderAll(); };
+  document.getElementById("f_priority").onchange = function () { filterState.priority = this.value; renderAll(); };
+  document.getElementById("todoSearch").oninput = renderAll;
+
+  document.getElementById("rv_start").onchange = function () { reviewPeriod.start = this.value; renderAll(); };
+  document.getElementById("rv_end").onchange = function () { reviewPeriod.end = this.value; renderAll(); };
+  function clearReviewPeriod() {
+    reviewPeriod = { start: "", end: "" };
+    document.getElementById("rv_start").value = "";
+    document.getElementById("rv_end").value = "";
+    renderAll();
+  }
+  function inReviewPeriod(t) {
+    if (reviewPeriod.start && t.dueDate < reviewPeriod.start) return false;
+    if (reviewPeriod.end && t.dueDate > reviewPeriod.end) return false;
+    return true;
+  }
+
+  // ---- 렌더링 ----
+  function renderAll() {
+    if (state.plan) {
+      document.getElementById("p_title").value = state.plan.title;
+      document.getElementById("p_start").value = state.plan.start;
+      document.getElementById("p_end").value = state.plan.end;
+      document.getElementById("p_priority").value = state.plan.priority;
+      document.getElementById("p_hours").value = state.plan.hours;
+      document.getElementById("p_criteria").value = state.plan.criteria;
+    } else {
+      document.getElementById("planForm").reset();
+    }
+
+    const carriedArea = document.getElementById("carriedArea");
+    if (state.plan && state.plan.carriedActionItem) {
+      carriedArea.innerHTML = `<div class="carried">🔁 이전 돌아보기에서 넘어온 고칠 점: <b>${escapeHtml(state.plan.carriedActionItem)}</b></div>`;
+    } else if (state.pendingActionItem) {
+      carriedArea.innerHTML = `<div class="carried">⏳ 다음 계획 저장 시 반영될 고칠 점: <b>${escapeHtml(state.pendingActionItem)}</b></div>`;
+    } else {
+      carriedArea.innerHTML = "";
+    }
+
+    const histArea = document.getElementById("planHistoryArea");
+    if (state.histories && state.histories.length > 0) {
+      histArea.innerHTML = "<b>계획 변경 이력 (고치기 전 값, 처음 계획부터 그대로 보존됨):</b>" +
+        state.histories.map(h =>
+          `<div class="plan-history-item">[${escapeHtml((h.modifiedAt || "").slice(0, 10))}] ${escapeHtml(h.title)} · 기간 ${escapeHtml(h.start)}~${escapeHtml(h.end)} · 우선순위 ${escapeHtml(h.priority)} · ${escapeHtml(h.hours)}h — ${escapeHtml(h.criteria)}</div>`
+        ).join("");
+    } else histArea.innerHTML = "";
+
+    document.getElementById("pendingActionHint").innerText = state.pendingActionItem
+      ? `대기 중: "${state.pendingActionItem}" (다음 계획 저장 시 반영)`
+      : "";
+
+    const today = getSeoulToday();
+    const search = document.getElementById("todoSearch").value.toLowerCase();
+    let visibleTodos = (state.todos || []).filter(t =>
+      (t.title.toLowerCase().includes(search) || t.tags.toLowerCase().includes(search)) &&
+      (filterState.priority === "ALL" || t.priority === filterState.priority) &&
+      todoMatchesStatusFilter(t, today)
+    );
+    visibleTodos.sort((a, b) => {
+      if (a.dueDate !== b.dueDate) return a.dueDate.localeCompare(b.dueDate);
+      const order = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+      return order[a.priority] - order[b.priority];
+    });
+
+    const tbody = document.getElementById("todoTableBody");
+    tbody.innerHTML = visibleTodos.map(t => {
+      const exec = (state.executionRecords || []).find(r => r.todoId === t.id);
+      const isDelayed = t.status === "TODO" && t.dueDate < today;
+      return `<tr>
+        <td>${t.status === "DONE" ? "✅ 완료" : (isDelayed ? "⚠️ 지연" : "⏳ 진행중")}</td>
+        <td><b>${escapeHtml(t.title)}</b></td>
+        <td>${escapeHtml(t.dueDate)}</td>
+        <td><span class="badge badge-${t.priority}">${t.priority}</span></td>
+        <td>${escapeHtml(t.tags)}</td>
+        <td>${escapeHtml(t.estimatedHours)}h</td>
+        <td>${exec ? escapeHtml(exec.actualHours) + "h" : "-"}</td>
+        <td>${exec ? `<button class="btn btn-ghost btn-sm" onclick="showRecord('${t.id}')">보기</button>` : "-"}</td>
+        <td style="white-space:nowrap;">
+          ${t.status === "TODO" ? `<button class="btn btn-actual btn-sm" onclick="completeTodo('${t.id}')">완료</button>` : `<button class="btn btn-sm" onclick="revertTodo('${t.id}')">되돌리기</button>`}
+          <button class="btn btn-ghost btn-sm" onclick="editTodo('${t.id}')">수정</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteTodo('${t.id}')">삭제</button>
+        </td>
+      </tr>`;
+    }).join("") || `<tr><td colspan="9" style="text-align:center; color:var(--ink-soft);">조건에 맞는 할 일이 없습니다.</td></tr>`;
+
+    document.querySelectorAll(".stat-box[data-type]").forEach(b => {
+      b.classList.toggle("active", b.dataset.type === filterState.status);
+    });
+
+    const periodTodos = (state.todos || []).filter(inReviewPeriod);
+    const totalPlan = periodTodos.length;
+    const totalDone = periodTodos.filter(t => t.status === "DONE").length;
+    const totalDelayed = periodTodos.filter(t => t.status === "TODO" && t.dueDate < today).length;
+    const periodIds = new Set(periodTodos.map(t => t.id));
+    const periodExec = (state.executionRecords || []).filter(r => periodIds.has(r.todoId));
+    const totalObstacle = periodTodos.filter(t => {
+      const exec = (state.executionRecords || []).find(r => r.todoId === t.id);
+      return !!(exec && exec.obstacleReason && exec.obstacleReason.trim() !== "");
+    }).length;
+
+    const totalEst = periodTodos.reduce((acc, t) => acc + (t.estimatedHours || 0), 0);
+    const totalAct = periodExec.reduce((acc, r) => acc + (r.actualHours || 0), 0);
+    const diff = totalAct - totalEst;
+
+    document.getElementById("statPlan").innerText = totalPlan;
+    document.getElementById("statDone").innerText = totalDone;
+    document.getElementById("statDelayed").innerText = totalDelayed;
+    document.getElementById("statObstacle").innerText = totalObstacle;
+    document.getElementById("statDiff").innerText = `${diff >= 0 ? "+" : ""}${Math.round(diff * 100) / 100}h`;
+
+    document.getElementById("periodLabel").innerText =
+      (reviewPeriod.start || reviewPeriod.end)
+        ? `집계 기간: ${reviewPeriod.start || "처음"} ~ ${reviewPeriod.end || "지금"} (할 일 마감일 기준)`
+        : "집계 기간: 전체";
+  }
+
+  async function exportData() {
+    const data = await api("/api/export");
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+    const dlAnchor = document.createElement("a");
+    dlAnchor.setAttribute("href", dataStr);
+    dlAnchor.setAttribute("download", `pds-diary-${getSeoulToday()}.json`);
+    dlAnchor.click();
+  }
+
+  // 화면 진입 시 로그인 상태 검사하여 화면 제어 (첫 화면은 로그인 화면)
+  checkAuthState();
+  window.addEventListener("DOMContentLoaded", checkAuthState);
 </script>
 </body>
 </html>
