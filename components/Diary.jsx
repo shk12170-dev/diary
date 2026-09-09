@@ -72,8 +72,12 @@ export default function Diary({ user }) {
   async function handlePlanSubmit(e) {
     e.preventDefault()
     if (plan) {
-      const { id, user_id, created_at, ...rest } = plan
-      await supabase.from('plan_histories').insert({ user_id: user.id, plan_id: id, ...rest, modified_at: new Date().toISOString() })
+      // plan_histories 테이블에는 carried_action_item 컬럼이 없으므로 반드시 제외하고 스프레드해야 한다.
+      // (포함하면 PostgREST가 "unknown column" 에러를 내는데, 이 insert의 반환값을 확인하지 않으면
+      //  실패가 조용히 묻히고 계획 변경 이력이 저장 안 된 채로 다음 계획만 생성돼버린다.)
+      const { id, user_id, created_at, carried_action_item, ...rest } = plan
+      const { error: historyError } = await supabase.from('plan_histories').insert({ user_id: user.id, plan_id: id, ...rest, modified_at: new Date().toISOString() })
+      if (historyError) { alert('이전 계획 이력 저장 실패: ' + historyError.message); return }
     }
     const carried = pendingAction ? pendingAction.text : null
     const { data: inserted, error } = await supabase.from('plans').insert({
