@@ -1,0 +1,58 @@
+
+=== 0) 로그인 없이 todos 조회 (anon key만) ===
+GET /rest/v1/todos
+Authorization: Bearer sb_publishab...[마스킹]
+
+-> 200
+[]
+
+=== 1) 계정 A 로그인 ===
+POST /auth/v1/token?grant_type=password  (email: alice.pds.card4@gmail.com)
+-> 200
+access_token: eyJhbGciOiJF...[마스킹]
+
+=== 2) 계정 B 로그인 ===
+POST /auth/v1/token?grant_type=password  (email: bob.pds.card4@gmail.com)
+-> 200
+access_token: eyJhbGciOiJF...[마스킹]
+
+=== 3) A가 자기 할 일 생성 ===
+POST /rest/v1/todos (A 토큰)
+-> 201
+[{"id":"b5f97ab4-59a8-4ae4-ad70-3e446b3e2a23","user_id":"023a7972-1c4b-4c41-8b93-1ca5ac7152de","plan_id":null,"title":"과제7 카드4 검증용 할 일","due_date":"2026-09-10","priority":"HIGH","tags":"evidence","estimated_hours":1,"status":"TODO","updated_at":"2026-09-09T08:38:38.306131+00:00"}]
+
+=== 4) B가 A의 할 일을 id로 조회 시도 ===
+GET /rest/v1/todos?id=eq.b5f97ab4-59a8-4ae4-ad70-3e446b3e2a23 (B 토큰)
+-> 200
+[]
+(빈 배열 = RLS가 존재 자체를 숨김. 타인 자료가 보이지 않아야 정상)
+
+=== 5) B가 A의 할 일 수정 시도 ===
+PATCH /rest/v1/todos?id=eq.b5f97ab4-59a8-4ae4-ad70-3e446b3e2a23 (B 토큰)
+-> 200
+[]
+(빈 배열 = 수정된 행 0건, 거절됨)
+
+=== 6) B가 A의 할 일 삭제 시도 ===
+DELETE /rest/v1/todos?id=eq.b5f97ab4-59a8-4ae4-ad70-3e446b3e2a23 (B 토큰)
+-> 200
+[]
+(빈 배열 = 삭제된 행 0건, 거절됨)
+
+=== 7) A가 자기 할 일 재조회 (변조/삭제 안 됐는지 확인) ===
+GET /rest/v1/todos?id=eq.b5f97ab4-59a8-4ae4-ad70-3e446b3e2a23 (A 토큰)
+-> 200
+[{"id":"b5f97ab4-59a8-4ae4-ad70-3e446b3e2a23","user_id":"023a7972-1c4b-4c41-8b93-1ca5ac7152de","plan_id":null,"title":"과제7 카드4 검증용 할 일","due_date":"2026-09-10","priority":"HIGH","tags":"evidence","estimated_hours":1,"status":"TODO","updated_at":"2026-09-09T08:38:38.306131+00:00"}]
+
+=== 8) B의 목록 조회에 A 자료가 섞이는지 확인 ===
+GET /rest/v1/todos (B 토큰)
+-> 200
+[]
+
+=== 9) 로그아웃(비로그인) 상태로 같은 자료 재조회 ===
+GET /rest/v1/todos?id=eq.b5f97ab4-59a8-4ae4-ad70-3e446b3e2a23 (토큰 없음, anon key만)
+-> 200
+[]
+
+=== 정리 ===
+검증용 할 일(A 소유)을 A 계정으로 삭제해 정리했습니다.

@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '../lib/supabase'
-import Diary from '../components/Diary'
+import { supabase } from '../../lib/supabase'
+import AuthForms from '../../components/AuthForms'
 
-export default function Home() {
+export default function LoginPage() {
   const router = useRouter()
-  const [session, setSession] = useState(undefined) // undefined = 아직 확인 중, null = 비로그인
+  const [session, setSession] = useState(undefined)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
@@ -16,13 +16,13 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    // 로그인하지 않은 상태로 메인 화면(/)에 접근하면 즉시 로그인 화면(/login)으로 보낸다.
-    if (session === null) router.replace('/login')
+    // 이미 로그인된 상태로 /login에 오면 다이어리 메인 화면으로 보낸다.
+    if (session) router.replace('/')
   }, [session, router])
 
-  if (session === undefined || session === null) {
+  if (session === undefined || session) {
     return <div className="center-loading">확인 중...</div>
   }
 
-  return <Diary user={session.user} />
+  return <AuthForms />
 }
