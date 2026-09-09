@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
 function getSeoulToday() {
@@ -36,6 +36,8 @@ export default function Diary({ user }) {
 
   const [completeModal, setCompleteModal] = useState(null) // { todoId, start, end, actual, obstacle }
   const [recordModal, setRecordModal] = useState(null) // execution record to show
+  const [importing, setImporting] = useState(false)
+  const importFileRef = useRef(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -245,6 +247,97 @@ export default function Diary({ user }) {
     URL.revokeObjectURL(url)
   }
 
+  async function importData(event) {
+    const file = event.target.files[0]
+    event.target.value = ''
+    if (!file) return
+    if (!confirm('파일의 계획/할 일/실행기록을 현재 계정에 새로 추가합니다. 계속할까요?')) return
+
+    setImporting(true)
+    try {
+      const text = await file.text()
+      const data = JSON.parse(text)
+      // 과제6 내보내기(camelCase: dueDate, estimatedHours ...)와
+      // 과제7 내보내기(snake_case: due_date, estimated_hours ...) 둘 다 지원한다.
+      const legacy = !!(data.todos && data.todos.length > 0 && 'dueDate' in data.todos[0])
+
+      let newPlanId = null
+      if (data.plan) {
+        const p = data.plan
+        const { data: inserted, error } = await supabase.from('plans').insert({
+          user_id: user.id,
+          title: p.title,
+          start_date: legacy ? p.start : p.start_date,
+          end_date: legacy ? p.end : p.end_date,
+          priority: p.priority,
+          hours: p.hours,
+          criteria: p.criteria,
+          carried_action_item: (legacy ? p.carriedActionItem : p.carried_action_item) || null,
+        }).select().single()
+        if (error) throw error
+        newPlanId = inserted.id
+      }
+
+      for (const h of data.planHistories || []) {
+        await supabase.from('plan_histories').insert({
+          user_id: user.id,
+          plan_id: newPlanId,
+          title: h.title,
+          start_date: legacy ? h.start : h.start_date,
+          end_date: legacy ? h.end : h.end_date,
+          priority: h.priority,
+          hours: h.hours,
+          criteria: h.criteria,
+          modified_at: h.modified_at || new Date().toISOString(),
+        })
+      }
+
+      const idMap = {}
+      for (const t of data.todos || []) {
+        const { data: inserted, error } = await supabase.from('todos').insert({
+          user_id: user.id,
+          plan_id: newPlanId,
+          title: t.title,
+          due_date: legacy ? t.dueDate : t.due_date,
+          priority: t.priority,
+          tags: t.tags || '',
+          estimated_hours: legacy ? t.estimatedHours : t.estimated_hours,
+          status: t.status || 'TODO',
+        }).select().single()
+        if (error) throw error
+        idMap[t.id] = inserted.id
+      }
+
+      for (const r of data.executionRecords || []) {
+        const oldTodoId = legacy ? r.todoId : r.todo_id
+        const newTodoId = idMap[oldTodoId]
+        if (!newTodoId) continue
+        await supabase.from('execution_records').insert({
+          user_id: user.id,
+          todo_id: newTodoId,
+          idempotency_key: `import_${newTodoId}_${Date.now()}`,
+          started_at: legacy ? r.startedAt : r.started_at,
+          ended_at: legacy ? r.endedAt : r.ended_at,
+          actual_hours: (legacy ? r.actualHours : r.actual_hours) || 0,
+          obstacle_reason: (legacy ? r.obstacleReason : r.obstacle_reason) || null,
+          completed_at: (legacy ? r.completedAt : r.completed_at) || new Date().toISOString(),
+        })
+      }
+
+      const pendingText = legacy ? data.pendingActionItem : null
+      if (pendingText) {
+        await supabase.from('review_action_items').insert({ user_id: user.id, text: pendingText })
+      }
+
+      await load()
+      alert('가져오기가 완료되었습니다.')
+    } catch (err) {
+      alert('가져오기 실패: ' + err.message)
+    } finally {
+      setImporting(false)
+    }
+  }
+
   async function handleLogout() {
     await supabase.auth.signOut()
   }
@@ -410,7 +503,14 @@ export default function Diary({ user }) {
       <h2>4. 백업</h2>
       <div className="card">
         <button className="btn" onClick={exportData}>JSON 파일 내보내기</button>
-        <div className="hint" style={{ marginTop: 10 }}>plans / todos / execution_records / plan_histories 테이블의 내 자료를 파일 하나로 내려받습니다.</div>
+        <input type="file" accept=".json" ref={importFileRef} style={{ display: 'none' }} onChange={importData} />
+        <button className="btn btn-actual" style={{ marginLeft: 8 }} disabled={importing} onClick={() => importFileRef.current.click()}>
+          {importing ? '가져오는 중...' : 'JSON 파일 가져오기'}
+        </button>
+        <div className="hint" style={{ marginTop: 10 }}>
+          내보내기: plans / todos / execution_records / plan_histories 테이블의 내 자료를 파일 하나로 내려받습니다.<br />
+          가져오기: 과제6 `index.html`에서 내보낸 파일이나, 이 화면에서 내보낸 파일을 현재 계정에 추가로 불러옵니다(기존 자료는 지워지지 않고 더해집니다).
+        </div>
       </div>
 
       {completeModal && (
