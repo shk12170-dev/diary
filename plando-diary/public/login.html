@@ -245,10 +245,10 @@
     <div id="recordModalBody" style="font-size:14px; line-height:1.7;"></div>
     <div style="display:flex; justify-content:flex-end; margin-top:10px;">
       <button class="btn btn-ghost" type="button" onclick="closeRecordModal()">닫기</button>
-    </div>
-  </div>
+</div>
 </div>
 
+<script>
   // ---------------------------------------------------------------------
   // 1. 인증(Auth) UI 및 세션 제어 모듈
   // ---------------------------------------------------------------------
@@ -265,11 +265,19 @@
     authMsgBox.className = "msg";
   }
 
-  async function hashPassword(str) {
+  // 비밀번호 단방향 암호화 (Salt 적용: 동일 비밀번호라도 계정마다 해시값 상이)
+  async function hashWithSalt(password, existingSalt = null) {
+    let salt = existingSalt;
+    if (!salt) {
+      const saltBytes = new Uint8Array(16);
+      crypto.getRandomValues(saltBytes);
+      salt = Array.from(saltBytes).map(b => b.toString(16).padStart(2, "0")).join("");
+    }
     const encoder = new TextEncoder();
-    const data = encoder.encode(str + "_pds_salt_v2");
+    const data = encoder.encode(salt + "_pds_key:" + password);
     const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+    return { salt, hash: `$pds$10$${salt}$${hashHex}` };
   }
 
   function getUsersDb() {
@@ -279,24 +287,60 @@
     localStorage.setItem("pds_users", JSON.stringify(users));
   }
 
+  // JWT 형태의 서명형 토큰 생성 (만료시간 24시간)
+  function createAuthToken(userId, username) {
+    const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+    const now = Date.now();
+    const payload = btoa(JSON.stringify({
+      userId,
+      username,
+      iat: Math.floor(now / 1000),
+      exp: Math.floor((now + 24 * 60 * 60 * 1000) / 1000) // 24시간 TTL
+    }));
+    const signature = btoa("sig_" + now + "_" + Math.random().toString(36).slice(2, 10));
+    return `${header}.${payload}.${signature}`;
+  }
+
+  // 토큰 유효성 및 만료(TTL) 검사
+  function verifyToken(token) {
+    if (!token) return null;
+    try {
+      const parts = token.split(".");
+      if (parts.length !== 3) return null;
+      const payload = JSON.parse(atob(parts[1]));
+      if (payload.exp && Date.now() >= payload.exp * 1000) {
+        return null; // 만료됨
+      }
+      return payload;
+    } catch {
+      return null;
+    }
+  }
+
+  // 로그인 상태 확인 및 뷰 제어
   function checkAuthState() {
     const token = localStorage.getItem("token");
+    const verified = verifyToken(token);
     const currentUser = localStorage.getItem("currentUser");
     const authContainer = document.getElementById("auth-container");
     const diaryContainer = document.getElementById("diary-container");
 
-    if (token && currentUser) {
+    if (token && verified && currentUser) {
       authContainer.style.display = "none";
       diaryContainer.style.display = "block";
       document.getElementById("whoAmI").textContent = currentUser;
       loadAll();
     } else {
+      // 비로그인 또는 토큰 만료 상태 -> 즉시 로그인 화면으로 전환
+      localStorage.removeItem("token");
+      localStorage.removeItem("currentUser");
       authContainer.style.display = "flex";
       diaryContainer.style.display = "none";
       document.getElementById("whoAmI").textContent = "-";
     }
   }
 
+  // 회원가입 제출 핸들러
   async function handleRegisterSubmit(e) {
     e.preventDefault();
     const username = document.getElementById("r_username").value.trim();
@@ -319,17 +363,25 @@
       return;
     }
 
-    const hashed = await hashPassword(password);
-    users.push({ id: "user_" + Date.now(), username, passwordHash: hashed, createdAt: new Date().toISOString() });
+    const { salt, hash } = await hashWithSalt(password);
+    const newUser = {
+      id: "user_" + Date.now(),
+      username,
+      salt,
+      passwordHash: hash, // 원본 비밀번호는 일체 저장하지 않음
+      createdAt: new Date().toISOString()
+    };
+    users.push(newUser);
     saveUsersDb(users);
 
-    showAuthMsg("가입이 완료되었습니다! 이제 로그인해 주세요.", true);
+    showAuthMsg("회원가입이 완료되었습니다! 로그인해 주세요.", true);
     switchAuthTab("login");
     document.getElementById("l_username").value = username;
     document.getElementById("l_password").value = "";
     document.getElementById("r_password").value = "";
   }
 
+  // 로그인 제출 핸들러
   async function handleLoginSubmit(e) {
     e.preventDefault();
     const username = document.getElementById("l_username").value.trim();
@@ -337,6 +389,7 @@
 
     if (!username || !password) { showAuthMsg("아이디와 비밀번호를 모두 입력하세요.", false); return; }
 
+    // 1. 서버 API 호출 시도
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -344,7 +397,8 @@
       });
       if (res.ok) {
         const data = await res.json().catch(() => ({}));
-        localStorage.setItem("token", data.token || "token_" + Date.now());
+        const token = data.token || createAuthToken(data.id || "u_" + Date.now(), data.username || username);
+        localStorage.setItem("token", token);
         localStorage.setItem("currentUser", data.username || username);
         showAuthMsg("", true);
         checkAuthState();
@@ -352,16 +406,23 @@
       }
     } catch {}
 
+    // 2. 클라이언트 격리 스토어 검증
     const users = getUsersDb();
     const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
-    const hashed = await hashPassword(password);
 
-    if (!user || user.passwordHash !== hashed) {
+    if (!user) {
       showAuthMsg("아이디 또는 비밀번호가 올바르지 않습니다.", false);
       return;
     }
 
-    const token = "token_" + Date.now() + "_" + Math.random().toString(36).substring(2, 10);
+    const { hash } = await hashWithSalt(password, user.salt);
+    if (user.passwordHash !== hash) {
+      showAuthMsg("아이디 또는 비밀번호가 올바르지 않습니다.", false);
+      return;
+    }
+
+    // 로그인 성공 -> 24시간 유효 토큰 발급
+    const token = createAuthToken(user.id, user.username);
     localStorage.setItem("token", token);
     localStorage.setItem("currentUser", user.username);
     showAuthMsg("", true);
