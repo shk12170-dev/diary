@@ -8,8 +8,25 @@ function getSeoulToday() {
   return fmt.format(new Date())
 }
 
+function toSeoulDate(iso) {
+  if (!iso) return null
+  const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' })
+  return fmt.format(new Date(iso))
+}
+
 function fmtDateTime(t) {
   return t ? new Date(t).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }) : '-'
+}
+
+// [2026-09-10 규칙 변경] 완료는 했지만 완료 시점이 마감일을 넘긴 경우도 "지연"으로 집계한다.
+// 기존에는 미완료(TODO)이면서 마감일이 지난 경우만 지연으로 셌는데, 이러면 마감을 넘겨
+// 완료 처리한 항목이 통계에서 전혀 안 잡혀 실제 지연이 감춰지는 문제가 있었다.
+function isLateCompletion(todo, execRecords) {
+  if (todo.status !== 'DONE') return false
+  const exec = execRecords.find((r) => r.todo_id === todo.id)
+  if (!exec) return false
+  const finishedDate = toSeoulDate(exec.ended_at || exec.completed_at)
+  return !!finishedDate && finishedDate > todo.due_date
 }
 
 const emptyPlanForm = { title: '', start_date: '', end_date: '', priority: 'MEDIUM', hours: '', criteria: '' }
@@ -205,7 +222,7 @@ export default function Diary({ user }) {
       const matchesPriority = priorityFilter === 'ALL' || t.priority === priorityFilter
       let matchesStatus = true
       if (statusFilter === 'DONE') matchesStatus = t.status === 'DONE'
-      else if (statusFilter === 'DELAYED') matchesStatus = t.status === 'TODO' && t.due_date < today
+      else if (statusFilter === 'DELAYED') matchesStatus = (t.status === 'TODO' && t.due_date < today) || isLateCompletion(t, execRecords)
       else if (statusFilter === 'OBSTACLE') {
         const exec = execRecords.find((r) => r.todo_id === t.id)
         matchesStatus = !!(exec && exec.obstacle_reason && exec.obstacle_reason.trim() !== '')
@@ -228,7 +245,7 @@ export default function Diary({ user }) {
     }
     const periodTodos = todos.filter(inPeriod)
     const totalDone = periodTodos.filter((t) => t.status === 'DONE').length
-    const totalDelayed = periodTodos.filter((t) => t.status === 'TODO' && t.due_date < today).length
+    const totalDelayed = periodTodos.filter((t) => (t.status === 'TODO' && t.due_date < today) || isLateCompletion(t, execRecords)).length
     const totalObstacle = periodTodos.filter((t) => {
       const exec = execRecords.find((r) => r.todo_id === t.id)
       return !!(exec && exec.obstacle_reason && exec.obstacle_reason.trim() !== '')
@@ -454,9 +471,11 @@ export default function Diary({ user }) {
             {visibleTodos.map((t) => {
               const exec = execRecords.find((r) => r.todo_id === t.id)
               const isDelayed = t.status === 'TODO' && t.due_date < today
+              const isLate = isLateCompletion(t, execRecords)
+              const statusLabel = t.status === 'DONE' ? (isLate ? '⚠️ 지연완료' : '✅ 완료') : (isDelayed ? '⚠️ 지연' : '⏳ 진행중')
               return (
                 <tr key={t.id}>
-                  <td>{t.status === 'DONE' ? '✅ 완료' : (isDelayed ? '⚠️ 지연' : '⏳ 진행중')}</td>
+                  <td>{statusLabel}</td>
                   <td><b>{t.title}</b></td>
                   <td>{t.due_date}</td>
                   <td><span className={`badge badge-${t.priority}`}>{t.priority}</span></td>
