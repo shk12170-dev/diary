@@ -2,9 +2,9 @@
 
 과제 6에서 만든 `localStorage` 전용 다이어리에 **Supabase Auth(로그인/가입) + Row Level Security(인가)**를 붙인 버전입니다.
 
-- **공개주소**(과제6 GitHub Pages, `localStorage` 전용 정적 버전): https://shk12170-dev.github.io/diary/
-- **배포주소**(과제7, 로그인/인가가 붙은 최종 버전): https://diary-nine-omega.vercel.app
-- **소스주소**: https://github.com/shk12170-dev/diary
+- **공개주소** : https://shk12170-dev.github.io/diary/
+- **배포주소** : https://diary-nine-omega.vercel.app
+- **소스주소** : https://github.com/shk12170-dev/diary/tree/86a0308737c8956b5fd4ac625241d206364c3dca 
 
 ## 화면
 
