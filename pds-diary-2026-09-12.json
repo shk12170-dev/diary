@@ -1,0 +1,299 @@
+{
+  "plan": {
+    "id": "4fb21110-d6ca-4a12-aa1a-097bc1419fd3",
+    "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+    "title": "SKT ALEPH 과제",
+    "start_date": "2026-08-11",
+    "end_date": "2026-11-12",
+    "priority": "HIGH",
+    "hours": 420,
+    "criteria": "주간 과제 완료",
+    "carried_action_item": "바이브 코딩 숙달 및 AI 명령어 구체화 요망",
+    "created_at": "2026-09-09T10:50:54.615641+00:00"
+  },
+  "planHistories": [
+    {
+      "id": "714694c2-252b-40ce-baf6-3ec8b99ca60a",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "plan_id": "a3e078b1-ae59-40cc-afbc-e12a935bdd1c",
+      "title": "SKT ALEPH 과제",
+      "start_date": "2026-08-11",
+      "end_date": "2026-11-12",
+      "priority": "MEDIUM",
+      "hours": 420,
+      "criteria": "주간 과제 완료",
+      "modified_at": "2026-09-04T00:13:24.958+00:00"
+    },
+    {
+      "id": "68f596c4-455e-40e4-839c-890be4387368",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "plan_id": "a3e078b1-ae59-40cc-afbc-e12a935bdd1c",
+      "title": "SKT ALEPH 과제",
+      "start_date": "2026-08-11",
+      "end_date": "2026-11-12",
+      "priority": "MEDIUM",
+      "hours": 420,
+      "criteria": "주간 과제 완료",
+      "modified_at": "2026-09-04T00:13:25.907+00:00"
+    },
+    {
+      "id": "5c4b4dbf-4d1c-45d7-ae87-fb9b664c9392",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "plan_id": "a3e078b1-ae59-40cc-afbc-e12a935bdd1c",
+      "title": "SKT ALEPH 과제",
+      "start_date": "2026-08-11",
+      "end_date": "2026-11-12",
+      "priority": "MEDIUM",
+      "hours": 420,
+      "criteria": "주간 과제 완료",
+      "modified_at": "2026-09-04T00:13:26.697+00:00"
+    },
+    {
+      "id": "1fd6a655-1257-44cd-9552-0b57ede56536",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "plan_id": "a3e078b1-ae59-40cc-afbc-e12a935bdd1c",
+      "title": "SKT ALEPH 과제",
+      "start_date": "2026-08-11",
+      "end_date": "2026-11-12",
+      "priority": "MEDIUM",
+      "hours": 420,
+      "criteria": "주간 과제 완료",
+      "modified_at": "2026-09-04T01:24:19.133+00:00"
+    }
+  ],
+  "todos": [
+    {
+      "id": "0af468d5-d995-497c-9e64-f6a0b663c47e",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "plan_id": "a3e078b1-ae59-40cc-afbc-e12a935bdd1c",
+      "title": "과제 1 나를 소개하는 한 페이지",
+      "due_date": "2026-08-16",
+      "priority": "LOW",
+      "tags": "자기소개서, 기술 스펙",
+      "estimated_hours": 4,
+      "status": "DONE",
+      "updated_at": "2026-09-09T10:50:27.702022+00:00"
+    },
+    {
+      "id": "44f72ec0-97eb-4c8f-a2ed-e2bb0ce70a15",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "plan_id": "a3e078b1-ae59-40cc-afbc-e12a935bdd1c",
+      "title": "과제 2 내가 설계한 미니게임",
+      "due_date": "2026-08-19",
+      "priority": "LOW",
+      "tags": "프론트엔드, 게임",
+      "estimated_hours": 6,
+      "status": "DONE",
+      "updated_at": "2026-09-09T10:50:27.754577+00:00"
+    },
+    {
+      "id": "0ec0750c-f925-44c9-b814-e37ca3b922b7",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "plan_id": "a3e078b1-ae59-40cc-afbc-e12a935bdd1c",
+      "title": "과제 3 짤카드 스튜디오",
+      "due_date": "2026-08-23",
+      "priority": "MEDIUM",
+      "tags": "사진, SNS, 편집",
+      "estimated_hours": 4,
+      "status": "DONE",
+      "updated_at": "2026-09-09T10:50:27.789713+00:00"
+    },
+    {
+      "id": "99e4a165-56ab-4e57-81bb-df258c7bb15b",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "plan_id": "a3e078b1-ae59-40cc-afbc-e12a935bdd1c",
+      "title": "과제 4 오늘의 진짜 정보판",
+      "due_date": "2026-08-26",
+      "priority": "MEDIUM",
+      "tags": "변동성 있는, 실제 정보",
+      "estimated_hours": 6,
+      "status": "DONE",
+      "updated_at": "2026-09-09T10:50:27.83287+00:00"
+    },
+    {
+      "id": "823617db-fc1d-4d1a-8c14-8f497f3c98e4",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "plan_id": "a3e078b1-ae59-40cc-afbc-e12a935bdd1c",
+      "title": "과제 5 대화가 끊겨도 이어지는 프로젝트",
+      "due_date": "2026-08-30",
+      "priority": "HIGH",
+      "tags": "과제3, 과제4, AI, 연계",
+      "estimated_hours": 4,
+      "status": "DONE",
+      "updated_at": "2026-09-09T10:50:27.86661+00:00"
+    },
+    {
+      "id": "1b7719ef-cd19-491c-bfce-59de786cc945",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "plan_id": "a3e078b1-ae59-40cc-afbc-e12a935bdd1c",
+      "title": "과제 6 플랜두씨 다이어리 1",
+      "due_date": "2026-09-02",
+      "priority": "HIGH",
+      "tags": "플랜, 계획, 다이어리",
+      "estimated_hours": 8,
+      "status": "DONE",
+      "updated_at": "2026-09-09T10:50:27.908979+00:00"
+    },
+    {
+      "id": "a1acfcac-3933-4fc6-906d-75895800eef1",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "plan_id": "4fb21110-d6ca-4a12-aa1a-097bc1419fd3",
+      "title": "과제 7 플랜두씨 다이어리 1일차",
+      "due_date": "2026-09-09",
+      "priority": "MEDIUM",
+      "tags": "데이터베이스 연동",
+      "estimated_hours": 4,
+      "status": "DONE",
+      "updated_at": "2026-09-10T11:43:55.866+00:00"
+    },
+    {
+      "id": "a112a750-1468-45f8-aecd-a44115c2e670",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "plan_id": "4fb21110-d6ca-4a12-aa1a-097bc1419fd3",
+      "title": "과제 7 플랜두씨 다이어리 2일차",
+      "due_date": "2026-09-10",
+      "priority": "HIGH",
+      "tags": "아이디/회원가입 창",
+      "estimated_hours": 4,
+      "status": "DONE",
+      "updated_at": "2026-09-10T11:44:16.815+00:00"
+    },
+    {
+      "id": "f4842752-b94b-4cec-9d0f-dcfb15abfe81",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "plan_id": "4fb21110-d6ca-4a12-aa1a-097bc1419fd3",
+      "title": "과제 8 Acceptance Matrix 1일차",
+      "due_date": "2026-09-11",
+      "priority": "MEDIUM",
+      "tags": "패스키, 기록",
+      "estimated_hours": 7,
+      "status": "DONE",
+      "updated_at": "2026-09-11T14:47:48.079+00:00"
+    },
+    {
+      "id": "8d023938-4e8c-42c0-bc7a-fafd5eb6b1bd",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "plan_id": "4fb21110-d6ca-4a12-aa1a-097bc1419fd3",
+      "title": "과제 8 Acceptance Matrix 2일차",
+      "due_date": "2026-09-12",
+      "priority": "HIGH",
+      "tags": "패스키, 웹사이트",
+      "estimated_hours": 7,
+      "status": "DONE",
+      "updated_at": "2026-09-11T15:12:34.409+00:00"
+    }
+  ],
+  "executionRecords": [
+    {
+      "id": "32a1a9ed-8d4f-459a-b807-f0848aed6443",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "todo_id": "0af468d5-d995-497c-9e64-f6a0b663c47e",
+      "idempotency_key": "import_0af468d5-d995-497c-9e64-f6a0b663c47e_1788951028791",
+      "started_at": "2026-08-14T06:00:00+00:00",
+      "ended_at": "2026-08-16T08:00:00+00:00",
+      "actual_hours": 8,
+      "obstacle_reason": "배포 기술 미흡",
+      "completed_at": "2026-09-04T01:31:04.909+00:00"
+    },
+    {
+      "id": "305a6d61-5f22-4f35-94e5-d87ad75d5fd5",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "todo_id": "44f72ec0-97eb-4c8f-a2ed-e2bb0ce70a15",
+      "idempotency_key": "import_44f72ec0-97eb-4c8f-a2ed-e2bb0ce70a15_1788951028858",
+      "started_at": "2026-08-17T06:00:00+00:00",
+      "ended_at": "2026-08-19T06:00:00+00:00",
+      "actual_hours": 10,
+      "obstacle_reason": null,
+      "completed_at": "2026-09-04T01:31:35.025+00:00"
+    },
+    {
+      "id": "d1168efd-74a7-4f19-b0b2-c79f2d72bf9b",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "todo_id": "0ec0750c-f925-44c9-b814-e37ca3b922b7",
+      "idempotency_key": "import_0ec0750c-f925-44c9-b814-e37ca3b922b7_1788951028893",
+      "started_at": "2026-08-20T06:00:00+00:00",
+      "ended_at": "2026-08-23T07:00:00+00:00",
+      "actual_hours": 10,
+      "obstacle_reason": null,
+      "completed_at": "2026-09-04T01:32:06.089+00:00"
+    },
+    {
+      "id": "cc4f1c21-236d-4f9d-9e5d-a3187d0a2247",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "todo_id": "99e4a165-56ab-4e57-81bb-df258c7bb15b",
+      "idempotency_key": "import_99e4a165-56ab-4e57-81bb-df258c7bb15b_1788951028928",
+      "started_at": "2026-08-24T06:00:00+00:00",
+      "ended_at": "2026-08-26T08:00:00+00:00",
+      "actual_hours": 12,
+      "obstacle_reason": "실제 정보 연동 지연",
+      "completed_at": "2026-09-04T01:32:57.472+00:00"
+    },
+    {
+      "id": "58388478-7d70-443e-a517-04c702587f09",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "todo_id": "823617db-fc1d-4d1a-8c14-8f497f3c98e4",
+      "idempotency_key": "import_823617db-fc1d-4d1a-8c14-8f497f3c98e4_1788951028971",
+      "started_at": "2026-08-27T06:00:00+00:00",
+      "ended_at": "2026-08-30T07:00:00+00:00",
+      "actual_hours": 10,
+      "obstacle_reason": "2개 AI 연계해서 과제 수행 어려움",
+      "completed_at": "2026-09-04T01:33:55.937+00:00"
+    },
+    {
+      "id": "d3d93187-1fd4-4639-8eef-7ac9819bb8ec",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "todo_id": "1b7719ef-cd19-491c-bfce-59de786cc945",
+      "idempotency_key": "import_1b7719ef-cd19-491c-bfce-59de786cc945_1788951029015",
+      "started_at": "2026-08-31T06:00:00+00:00",
+      "ended_at": "2026-09-02T07:00:00+00:00",
+      "actual_hours": 14,
+      "obstacle_reason": "DB 연동 어려움",
+      "completed_at": "2026-09-04T01:34:40.158+00:00"
+    },
+    {
+      "id": "eca5edeb-5444-4716-8877-882f20fe4db0",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "todo_id": "a1acfcac-3933-4fc6-906d-75895800eef1",
+      "idempotency_key": "todo_a1acfcac-3933-4fc6-906d-75895800eef1_done",
+      "started_at": "2026-09-09T00:00:00+00:00",
+      "ended_at": "2026-09-09T08:00:00+00:00",
+      "actual_hours": 8,
+      "obstacle_reason": "로그인/ 회원가입 창 구축간 오류로 지연",
+      "completed_at": "2026-09-09T10:56:05.731938+00:00"
+    },
+    {
+      "id": "cc549f8c-29cd-4ad3-a8fe-e45cdf475890",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "todo_id": "a112a750-1468-45f8-aecd-a44115c2e670",
+      "idempotency_key": "todo_a112a750-1468-45f8-aecd-a44115c2e670_done",
+      "started_at": "2026-09-10T00:00:00+00:00",
+      "ended_at": "2026-09-10T11:00:00+00:00",
+      "actual_hours": 5,
+      "obstacle_reason": "-",
+      "completed_at": "2026-09-10T11:41:59.493339+00:00"
+    },
+    {
+      "id": "b6635435-c3bd-4e42-8e1d-b4eac05d1e59",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "todo_id": "f4842752-b94b-4cec-9d0f-dcfb15abfe81",
+      "idempotency_key": "todo_f4842752-b94b-4cec-9d0f-dcfb15abfe81_done",
+      "started_at": "2026-09-11T00:00:00+00:00",
+      "ended_at": "2026-09-11T08:00:00+00:00",
+      "actual_hours": 5,
+      "obstacle_reason": "패스키 인증수단 오류",
+      "completed_at": "2026-09-11T14:47:47.107914+00:00"
+    },
+    {
+      "id": "7f4b9589-e207-484e-868f-70a6ca460b19",
+      "user_id": "d26f6d50-912a-4097-b084-f26bbf818711",
+      "todo_id": "8d023938-4e8c-42c0-bc7a-fafd5eb6b1bd",
+      "idempotency_key": "todo_8d023938-4e8c-42c0-bc7a-fafd5eb6b1bd_done",
+      "started_at": "2026-09-11T04:00:00+00:00",
+      "ended_at": "2026-09-11T15:10:00+00:00",
+      "actual_hours": 7,
+      "obstacle_reason": "검증간 패스키 인증간 인증키만 인증되는 현상 발생",
+      "completed_at": "2026-09-11T15:12:33.197035+00:00"
+    }
+  ],
+  "exportedAt": "2026-09-11T15:16:04.904Z"
+}
