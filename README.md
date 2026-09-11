@@ -2,8 +2,25 @@
 
 과제 6에서 만든 `localStorage` 전용 다이어리에 **Supabase Auth(로그인/가입) + Row Level Security(인가)**를 붙인 버전입니다.
 
-- 배포 주소: https://diary-nine-omega.vercel.app *(과제7 반영 후 재배포 필요 — 아래 "배포" 참고)*
-- 소스 주소: https://github.com/shk12170-dev/diary
+- **공개주소**(과제6 GitHub Pages, `localStorage` 전용 정적 버전): https://shk12170-dev.github.io/diary/
+- **배포주소**(과제7, 로그인/인가가 붙은 최종 버전): https://diary-nine-omega.vercel.app
+- **소스주소**: https://github.com/shk12170-dev/diary
+
+## 화면
+
+**웹페이지 화면 — 첫 화면(로그인)**
+
+*(스크린샷 추가 예정)*
+
+**5일치 실사용 결과 — 계획/할 일 목록**
+
+![5일치 결과 화면 1](image/5일치%20결과%20화면%201(계획-할일목록).png)
+
+**5일치 실사용 결과 — 할 일 목록 및 돌아보기 통계(계획10·완료10·지연0·막힘8·시간격차+35h)**
+
+![5일치 결과 화면 2](image/5일치%20결과%20화면%202(할일목록-돌아보기%20통계).png)
+
+자세한 5일치 기록/집계 검산 내용은 [5일차_실사용_기록.md](5일차_실사용_기록.md) 참고.
 
 ## 아키텍처
 
